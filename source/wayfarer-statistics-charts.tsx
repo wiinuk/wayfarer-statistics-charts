@@ -321,9 +321,22 @@ function calculateSubmissionSeries(
         }))
         .sort((a, b) => a.dayTicks - b.dayTicks);
 
-    // 日毎にまとめる
+    // インデックスを作成
     const dayToStatusToNominations = new Map<
         DayTicks,
+        Map<SubmissionStatus, NominationSubmission[]>
+    >();
+    const statusToDayToNominations = new Map<
+        SubmissionStatus,
+        Map<DayTicks, NominationSubmission[]>
+    >();
+    const dayToNominations = new Map<DayTicks, NominationSubmission[]>();
+    const statusToMonthToNominations = new Map<
+        SubmissionStatus,
+        Map<MonthTicks, NominationSubmission[]>
+    >();
+    const monthToStatusToNominations = new Map<
+        MonthTicks,
         Map<SubmissionStatus, NominationSubmission[]>
     >();
     for (const n of nominationWithTicks) {
@@ -332,42 +345,26 @@ function calculateSubmissionSeries(
             n.status,
             Array
         ).push(n);
-    }
-    const statusToDayToNominations = new Map<
-        SubmissionStatus,
-        Map<DayTicks, NominationSubmission[]>
-    >();
-    for (const n of nominationWithTicks) {
         getOrCreate(
             getOrCreate(statusToDayToNominations, n.status, newMap),
             n.dayTicks,
             Array
         ).push(n);
-    }
-
-    // 月毎にまとめる
-    const statusToMonthToNominations = new Map<
-        SubmissionStatus,
-        Map<MonthTicks, NominationSubmission[]>
-    >();
-    for (const [status, days] of statusToDayToNominations) {
-        const months = getOrCreate(statusToMonthToNominations, status, newMap);
-        for (const [day, nominations] of days) {
-            getOrCreate(months, getStartOfLocalMonth(day), Array).push(
-                ...nominations
-            );
-        }
-    }
-    const monthToStatusToNominations = new Map<
-        MonthTicks,
-        Map<SubmissionStatus, NominationSubmission[]>
-    >();
-    for (const [day, statuses] of dayToStatusToNominations) {
-        const month = getStartOfLocalMonth(day);
-        const months = getOrCreate(monthToStatusToNominations, month, newMap);
-        for (const [status, nominations] of statuses) {
-            getOrCreate(months, status, Array).push(...nominations);
-        }
+        getOrCreate(dayToNominations, n.dayTicks, Array).push(n);
+        getOrCreate(
+            getOrCreate(statusToMonthToNominations, n.status, newMap),
+            getStartOfLocalMonth(n.dayTicks),
+            Array
+        ).push(n);
+        getOrCreate(
+            getOrCreate(
+                monthToStatusToNominations,
+                getStartOfLocalMonth(n.dayTicks),
+                newMap
+            ),
+            n.status,
+            Array
+        ).push(n);
     }
 
     const result: SubmissionSeries[] = [];
@@ -385,12 +382,6 @@ function calculateSubmissionSeries(
         });
     }
 
-    // 日毎の累計承認率
-    result.push({
-        name: names.cumulativeAcceptedRatioPerDay,
-        data: calculateAcceptedRatios(dayToStatusToNominations, true),
-    });
-
     // 月毎状態数
     for (const [status, months] of statusToMonthToNominations) {
         const data: SubmissionSeries["data"] = [];
@@ -404,6 +395,12 @@ function calculateSubmissionSeries(
             data,
         });
     }
+
+    // 日毎の累計承認率
+    result.push({
+        name: names.cumulativeAcceptedRatioPerDay,
+        data: calculateAcceptedRatios(dayToStatusToNominations, true),
+    });
 
     // 月毎の承認率
     result.push({
@@ -508,7 +505,7 @@ export async function asyncMain() {
                     ["WITHDRAWN", "取下済"],
                 ]),
                 {
-                    cumulativeAcceptedRatioPerDay: "累計承認率",
+                    cumulativeAcceptedRatioPerDay: "承認率",
                     statusCountPerMonth: "月",
                     acceptedRatioPerMonth: "承認率/月",
                 }
