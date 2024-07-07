@@ -264,7 +264,7 @@ function parseAsLocalTicks(dayString: Day) {
     const [year, month, day] = dayString.split("-");
     const d = (tempDate ??= new Date());
     d.setTime(0);
-    d.setFullYear(Number(year), Number(month), Number(day));
+    d.setFullYear(Number(year), Number(month) - 1, Number(day));
     d.setHours(0, 0, 0, 0);
     return d.getTime() as DayTicks;
 }
@@ -341,6 +341,7 @@ function calculateSubmissionSeries(
         Map<SubmissionStatus, NominationSubmission[]>
     >();
     for (const n of nominationWithTicks) {
+        const month = getStartOfLocalMonth(n.dayTicks);
         getOrCreate(
             getOrCreate(dayToStatusToNominations, n.dayTicks, newMap),
             n.status,
@@ -354,15 +355,11 @@ function calculateSubmissionSeries(
         getOrCreate(dayToNominations, n.dayTicks, Array).push(n);
         getOrCreate(
             getOrCreate(statusToMonthToNominations, n.status, newMap),
-            getStartOfLocalMonth(n.dayTicks),
+            month,
             Array
         ).push(n);
         getOrCreate(
-            getOrCreate(
-                monthToStatusToNominations,
-                getStartOfLocalMonth(n.dayTicks),
-                newMap
-            ),
+            getOrCreate(monthToStatusToNominations, month, newMap),
             n.status,
             Array
         ).push(n);
