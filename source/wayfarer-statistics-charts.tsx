@@ -2,17 +2,27 @@
 import { addStyle } from "./document-extensions";
 import classNames, { cssText } from "./styles.module.css";
 
+type MapKey<TMap extends Map<unknown, unknown>> = TMap extends Map<
+    infer k,
+    infer _
+>
+    ? k
+    : never;
+type MapValue<TMap extends Map<unknown, unknown>> = TMap extends Map<
+    infer _,
+    infer V
+>
+    ? V
+    : never;
 function getOrCreate<TMap extends Map<unknown, unknown>>(
     map: TMap,
-    key: TMap extends Map<infer k, infer _> ? k : never,
-    Class: { new (): TMap extends Map<infer _, infer V> ? V : never }
+    key: MapKey<TMap>,
+    createValue: () => MapValue<TMap>
 ) {
     if (map.has(key)) {
-        return map.get(key) as NonNullable<
-            TMap extends Map<infer _, infer V> ? V : never
-        >;
+        return map.get(key) as NonNullable<MapValue<TMap>>;
     }
-    const value = new Class();
+    const value = createValue();
     map.set(key, value);
     return value;
 }
@@ -138,6 +148,7 @@ type SubmissionStatus =
     | "VOTING"
     | "NOMINATED";
 
+type Day = `${number}-${number}-${number}`;
 interface SubmissionBase {
     id: string;
     type: string;
@@ -147,7 +158,7 @@ interface SubmissionBase {
     lng: number;
     city: string;
     state: string;
-    day: `${number}-${number}-${number}`;
+    day: Day;
     order: number;
     imageUrl: string;
     nextUpgrade: boolean;
@@ -223,45 +234,193 @@ function parseNominations(response: unknown) {
     return nominations;
 }
 
-function calculateEventCounts(dates: readonly unknown[]) {
-    return dates.map((_, index) => index + 1);
+type Id<T> = (x: T) => T;
+const id: <T>(x: T) => T = (x) => x;
+
+const privateTaggedSymbol = Symbol("privateTaggedSymbol ");
+type Tagged<T, TTag> = T & { readonly [privateTaggedSymbol]: TTag };
+type MonthTicks = Ticks;
+type DayTicks = Ticks;
+function asTagged<T, TTag>(value: T, _tag: Id<TTag>) {
+    return value as Tagged<T, TTag>;
+}
+type Ticks = Tagged<number, "Ticks">;
+
+let tempDate: Date | null = null;
+function getStartOfLocalMonth(time: Ticks) {
+    const d = (tempDate ??= new Date());
+    d.setTime(time);
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() as MonthTicks;
+}
+function getStartOfLocalDay(time: Ticks) {
+    const d = (tempDate ??= new Date());
+    d.setTime(time);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() as DayTicks;
+}
+function parseAsLocalTicks(dayString: Day) {
+    const [year, month, day] = dayString.split("-");
+    const d = (tempDate ??= new Date());
+    d.setTime(0);
+    d.setFullYear(Number(year), Number(month), Number(day));
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() as DayTicks;
+}
+function newMap<K, V>(): Map<K, V> {
+    return new Map();
+}
+interface SubmissionSeriesDisplayNames {
+    acceptedRatioPerMonth: string;
+    /** 累計承認率/日 */
+    readonly cumulativeAcceptedRatioPerDay: string;
+    /** {状態}数/月 */
+    readonly statusCountPerMonth: string;
+}
+function calculateAcceptedRatios(
+    periodToStatusToNominations: ReadonlyMap<
+        Ticks,
+        ReadonlyMap<SubmissionStatus, readonly NominationSubmission[]>
+    >,
+    cumulative: boolean
+) {
+    // 一定期間毎の承認率を算出
+    // 承認率 = 承認数 / (承認数 + 否認数 + 重複数 + 取下数)
+    let acceptedCount = 0;
+    let notAcceptedCount = 0;
+    const data: SubmissionSeries["data"] = [];
+    for (const [period, statuses] of periodToStatusToNominations) {
+        const acceptedPerPeriod = statuses.get("ACCEPTED")?.length ?? 0;
+        const notAcceptedPerPeriod =
+            (statuses.get("REJECTED")?.length ?? 0) +
+            (statuses.get("DUPLICATE")?.length ?? 0) +
+            (statuses.get("WITHDRAWN")?.length ?? 0);
+
+        acceptedCount = cumulative
+            ? acceptedCount + acceptedPerPeriod
+            : acceptedPerPeriod;
+        notAcceptedCount = cumulative
+            ? notAcceptedCount + notAcceptedPerPeriod
+            : notAcceptedPerPeriod;
+
+        data.push([period, acceptedCount / (acceptedCount + notAcceptedCount)]);
+    }
+    return data;
+}
+function calculateSubmissionSeries(
+    nominations: readonly NominationSubmission[],
+    statusToDisplayName: ReadonlyMap<SubmissionStatus, string>,
+    names: SubmissionSeriesDisplayNames
+) {
+    // 日時でソートする
+    const nominationWithTicks = nominations
+        .map((n) => ({
+            ...n,
+            dayTicks: parseAsLocalTicks(n.day),
+        }))
+        .sort((a, b) => a.dayTicks - b.dayTicks);
+
+    // 日毎にまとめる
+    const dayToStatusToNominations = new Map<
+        DayTicks,
+        Map<SubmissionStatus, NominationSubmission[]>
+    >();
+    for (const n of nominationWithTicks) {
+        getOrCreate(
+            getOrCreate(dayToStatusToNominations, n.dayTicks, newMap),
+            n.status,
+            Array
+        ).push(n);
+    }
+    const statusToDayToNominations = new Map<
+        SubmissionStatus,
+        Map<DayTicks, NominationSubmission[]>
+    >();
+    for (const n of nominationWithTicks) {
+        getOrCreate(
+            getOrCreate(statusToDayToNominations, n.status, newMap),
+            n.dayTicks,
+            Array
+        ).push(n);
+    }
+
+    // 月毎にまとめる
+    const statusToMonthToNominations = new Map<
+        SubmissionStatus,
+        Map<MonthTicks, NominationSubmission[]>
+    >();
+    for (const [status, days] of statusToDayToNominations) {
+        const months = getOrCreate(statusToMonthToNominations, status, newMap);
+        for (const [day, nominations] of days) {
+            getOrCreate(months, getStartOfLocalMonth(day), Array).push(
+                ...nominations
+            );
+        }
+    }
+    const monthToStatusToNominations = new Map<
+        MonthTicks,
+        Map<SubmissionStatus, NominationSubmission[]>
+    >();
+    for (const [day, statuses] of dayToStatusToNominations) {
+        const month = getStartOfLocalMonth(day);
+        const months = getOrCreate(monthToStatusToNominations, month, newMap);
+        for (const [status, nominations] of statuses) {
+            getOrCreate(months, status, Array).push(...nominations);
+        }
+    }
+
+    const result: SubmissionSeries[] = [];
+
+    // 日毎の累計状態数
+    for (const [status, days] of statusToDayToNominations) {
+        const data: SubmissionSeries["data"] = [];
+        let cumulativeCount = 0;
+        for (const [day, nominations] of days) {
+            data.push([day, (cumulativeCount += nominations.length)]);
+        }
+        result.push({
+            name: `${statusToDisplayName.get(status) || status}`,
+            data,
+        });
+    }
+
+    // 日毎の承認率
+    result.push({
+        name: names.cumulativeAcceptedRatioPerDay,
+        data: calculateAcceptedRatios(dayToStatusToNominations, false),
+    });
+
+    // 月毎状態数
+    for (const [status, months] of statusToMonthToNominations) {
+        const data: SubmissionSeries["data"] = [];
+        for (const [month, nominations] of months) {
+            data.push([month, nominations.length]);
+        }
+        result.push({
+            name: `${statusToDisplayName.get(status) || status}/${
+                names.statusCountPerMonth
+            }`,
+            data,
+        });
+    }
+
+    // 月毎の承認率
+    result.push({
+        name: names.acceptedRatioPerMonth,
+        data: calculateAcceptedRatios(monthToStatusToNominations, false),
+    });
+
+    return result;
 }
 
-async function displayCharts() {
+type SubmissionSeries = { name: string; data: [Ticks, number][] };
+async function displayCharts(
+    submissionSeriesList: readonly SubmissionSeries[]
+) {
     const echarts = await import(
         "https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.esm.min.mjs"
     );
-
-    const eventSeries = [
-        {
-            name: "イベントA",
-            data: [
-                "2023-10-25 00:00:00",
-                "2023-10-26 00:00:00",
-                "2024-01-02 00:00:00",
-            ],
-        },
-        {
-            name: "イベントB",
-            data: [
-                "2023-11-05 00:00:00",
-                "2023-12-10 00:00:00",
-                "2024-01-15 00:00:00",
-                "2024-02-20 00:00:00",
-            ],
-        },
-        {
-            name: "イベントC",
-            data: [
-                "2023-10-30 00:00:00",
-                "2023-11-30 00:00:00",
-                "2024-01-30 00:00:00",
-                "2024-02-28 00:00:00",
-                "2024-03-30 00:00:00",
-            ],
-        },
-    ];
-
     const option = {
         xAxis: {
             type: "time",
@@ -278,38 +437,38 @@ async function displayCharts() {
             type: "value",
             name: "イベント数",
         },
-        series: eventSeries.map((series) => ({
-            name: series.name,
-            data: series.data.map((date, index) => [
-                date,
-                calculateEventCounts(series.data)[index],
-            ]),
-            type: "line",
-            symbol: "none",
-        })),
+        series: submissionSeriesList.map(
+            (series) =>
+                ({
+                    name: series.name,
+                    data: series.data,
+                    type: "line",
+                    symbol: "none",
+                } satisfies echarts.EChartOption.SeriesLine)
+        ),
         tooltip: {
             trigger: "axis",
             formatter: (ps) => {
                 const params = Array.isArray(ps) ? ps : [ps];
                 let result = `${new Date(
-                    (params[0]?.value as [string, number])[0]
+                    (params[0]?.value as [Ticks, number])[0]
                 ).toLocaleString()}<br/>`;
                 for (const param of params) {
                     result += `${param.seriesName}: ${
-                        (param.value as [string, number])[1]
+                        (param.value as [Ticks, number])[1]
                     }<br/>`;
                 }
                 return result;
             },
         },
         legend: {
-            data: eventSeries.map((series) => series.name),
+            data: submissionSeriesList.map((series) => series.name),
             selected: {},
         },
-    } satisfies echarts.EChartOption;
+    } satisfies echarts.EChartOption<echarts.EChartOption.SeriesLine>;
 
     const containerElement = (
-        <div className={classNames["chart-container"]} />
+        <div class={classNames["chart-container"]} />
     ) as HTMLDivElement;
 
     const chart = echarts.init(containerElement, undefined, {
@@ -317,6 +476,15 @@ async function displayCharts() {
         height: 200,
     });
     chart.setOption(option);
+
+    new ResizeObserver((entries) => {
+        for (const { contentRect } of entries) {
+            chart.resize({
+                width: contentRect.width,
+                height: contentRect.height,
+            });
+        }
+    }).observe(containerElement);
 
     await displayPreview(containerElement, ["OK"]);
 }
@@ -327,21 +495,24 @@ export async function asyncMain() {
     for await (const value of await interceptApiToValues()) {
         const r: unknown = (value.currentTarget as XMLHttpRequest).response;
         console.debug("manage response: ", r);
-
-        const stateToDayToNominations = new Map<
-            string,
-            Map<`${number}-${number}-${number}`, NominationSubmission[]>
-        >();
-        const collectingStates = new Set(["ACCEPTED", "REJECTED", "DUPLICATE"]);
-        for (const n of parseNominations(r)) {
-            if (collectingStates.has(n.status)) {
-                getOrCreate(
-                    getOrCreate(stateToDayToNominations, n.status, Map),
-                    n.day,
-                    Array
-                ).push(n);
-            }
-        }
-        await displayCharts();
+        await displayCharts(
+            calculateSubmissionSeries(
+                parseNominations(r),
+                new Map<SubmissionStatus, string>([
+                    ["ACCEPTED", "承認"],
+                    ["DUPLICATE", "重複"],
+                    ["HELD", "保留"],
+                    ["NOMINATED", "審査中"],
+                    ["REJECTED", "否認"],
+                    ["VOTING", "投票中"],
+                    ["WITHDRAWN", "取下済"],
+                ]),
+                {
+                    cumulativeAcceptedRatioPerDay: "累計承認率",
+                    statusCountPerMonth: "月",
+                    acceptedRatioPerMonth: "承認率/月",
+                }
+            )
+        );
     }
 }

@@ -20,4 +20,6 @@
 
 .chart-container {
     background: white;
+    overflow: scroll;
+    resize: both;
 }
