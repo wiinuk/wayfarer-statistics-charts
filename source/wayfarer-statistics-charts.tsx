@@ -385,10 +385,10 @@ function calculateSubmissionSeries(
         });
     }
 
-    // 日毎の承認率
+    // 日毎の累計承認率
     result.push({
         name: names.cumulativeAcceptedRatioPerDay,
-        data: calculateAcceptedRatios(dayToStatusToNominations, false),
+        data: calculateAcceptedRatios(dayToStatusToNominations, true),
     });
 
     // 月毎状態数
