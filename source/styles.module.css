@@ -1,0 +1,23 @@
+.display-preview {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: repeating-linear-gradient(45deg,
+            #cccccc80,
+            #cccccc80 10px,
+            #ffffff80 10px,
+            #ffffff80 20px);
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+}
+
+.display-preview-button {
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+.chart-container {
+    background: white;
+}
