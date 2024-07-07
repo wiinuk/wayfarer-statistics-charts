@@ -304,6 +304,7 @@ function calculateAcceptedRatios(
             ? notAcceptedCount + notAcceptedPerPeriod
             : notAcceptedPerPeriod;
 
+        if (0 === acceptedCount + notAcceptedCount) continue;
         data.push([period, acceptedCount / (acceptedCount + notAcceptedCount)]);
     }
     return data;
