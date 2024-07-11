@@ -22,6 +22,7 @@ const config = {
             {
                 test: /\.tsx?$/,
                 use: "ts-loader",
+                exclude: /node_modules/,
             },
             {
                 test: /\.svg$/,
@@ -40,6 +41,9 @@ const config = {
     output: {
         path: __dirname,
         filename: `${packageName}.user.js`,
+    },
+    stats: {
+        children: true,
     },
 };
 module.exports = config;
