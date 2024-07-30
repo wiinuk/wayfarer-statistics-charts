@@ -95,9 +95,7 @@ interface ManageResponse {
     captcha: boolean;
 }
 
-export function parseNominations(response: unknown) {
-    if (typeof response !== "string")
-        throw new Error("Invalid response from Wayfarer");
+export function parseNominations(response: string) {
     const json: unknown = JSON.parse(response);
     if (json == null) throw new Error("Invalid response from Wayfarer");
 

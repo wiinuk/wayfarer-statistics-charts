@@ -241,3 +241,45 @@ export type SetProperty<O, K extends keyof O, V> = {
 };
 
 export const isArray = Array.isArray as (x: unknown) => x is readonly unknown[];
+
+type BasicStructuredCloneable =
+    | null
+    | undefined
+    | boolean
+    | number
+    | string
+    | bigint
+    | Date
+    | RegExp
+    | Blob
+    | File
+    | FileList
+    | ArrayBuffer
+    | SharedArrayBuffer
+    | DataView
+    | Int8Array
+    | Uint8Array
+    | Uint8ClampedArray
+    | Int16Array
+    | Uint16Array
+    | Int32Array
+    | Uint32Array
+    | Float32Array
+    | Float64Array
+    | BigInt64Array
+    | BigUint64Array
+    | ImageData;
+
+export type StructuredCloneable =
+    | BasicStructuredCloneable
+    | StructuredCloneable[]
+    | { [key: string]: StructuredCloneable }
+    | Map<StructuredCloneable, StructuredCloneable>
+    | Set<StructuredCloneable>;
+
+export type ReadonlyStructuredCloneable =
+    | BasicStructuredCloneable
+    | readonly StructuredCloneable[]
+    | { readonly [key: string]: StructuredCloneable }
+    | ReadonlyMap<StructuredCloneable, StructuredCloneable>
+    | ReadonlySet<StructuredCloneable>;

@@ -4,9 +4,11 @@ import classNames, { cssText } from "./styles.module.css";
 import BackgroundWorker from "worker-loader?inline=no-fallback!./background.worker";
 import type {
     SubmissionSeries,
-    SubmissionSeriesDisplayNames,
+    SubmissionChartsDisplayNames,
     Ticks,
 } from "./submission-series";
+import { error } from "./standard-extensions";
+import type { EChartOption } from "echarts";
 
 function displayPreview<TChoices>(
     innerElement: HTMLElement,
@@ -105,15 +107,21 @@ function interceptApiToValues() {
     );
 }
 
-async function displayCharts(
-    submissionSeriesList: readonly SubmissionSeries[]
-) {
-    const echarts = await import(
-        "https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.esm.min.mjs"
-    );
-    const option = {
+function createEChartOptionsFromSubmissionSeries(
+    series: SubmissionSeries[]
+): EChartOption<EChartOption.Series> {
+    return {
         textStyle: {
             fontFamily: "'Yu Gothic UI', 'Meiryo UI', sans-serif",
+        },
+        toolbox: {
+            feature: {
+                dataZoom: {
+                    yAxisIndex: "none",
+                },
+                restore: {},
+                saveAsImage: {},
+            },
         },
         xAxis: {
             type: "time",
@@ -130,7 +138,8 @@ async function displayCharts(
             type: "value",
             name: "イベント数",
         },
-        series: submissionSeriesList.slice(),
+        dataZoom: [{}],
+        series,
         tooltip: {
             trigger: "axis",
             formatter: (ps) => {
@@ -147,16 +156,23 @@ async function displayCharts(
             },
         },
         legend: {
-            data: submissionSeriesList.map((series) => series.name),
+            data: series.map((series) => series.name),
             selected: {},
         },
-    } satisfies echarts.EChartOption<echarts.EChartOption.Series>;
+    };
+}
 
-    const containerElement = (
+async function displayCharts(series: SubmissionSeries[]) {
+    const option = createEChartOptionsFromSubmissionSeries(series);
+    const echarts = await import(
+        "https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.esm.min.mjs"
+    );
+    const chartContainerElement = (
         <div class={classNames["chart-container"]} />
     ) as HTMLDivElement;
+    const displayInnerElement = <div>{chartContainerElement}</div>;
 
-    const chart = echarts.init(containerElement, undefined, {
+    const chart = echarts.init(chartContainerElement, undefined, {
         width: 300,
         height: 200,
     });
@@ -169,9 +185,9 @@ async function displayCharts(
                 height: contentRect.height,
             });
         }
-    }).observe(containerElement);
+    }).observe(chartContainerElement);
 
-    await displayPreview(containerElement, ["OK"]);
+    await displayPreview(displayInnerElement, ["OK"]);
 }
 
 let backgroundModule:
@@ -194,6 +210,7 @@ export async function asyncMain() {
     for await (const value of await interceptApiToValues()) {
         const r: unknown = (value.currentTarget as XMLHttpRequest).response;
         console.debug("manage response: ", r);
+        if (typeof r !== "string") return error`response must be a string`;
 
         const names = {
             cumulativeAcceptedRatioPerDay: "承認率",
@@ -209,14 +226,11 @@ export async function asyncMain() {
                 VOTING: "投票中",
                 WITHDRAWN: "取下済",
             },
-        } satisfies SubmissionSeriesDisplayNames;
+        } satisfies SubmissionChartsDisplayNames;
 
         const backgroundModule = await importBackgroundModule();
-        const series =
-            await backgroundModule.calculateSubmissionSeriesFromManageResponse(
-                r,
-                names
-            );
-        await displayCharts(series);
+        const submissionSeries =
+            await backgroundModule.calculateSubmissionCharts(r, names);
+        await displayCharts(submissionSeries);
     }
 }

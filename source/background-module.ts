@@ -1,12 +1,12 @@
 import {
     calculateSubmissionSeries,
-    type SubmissionSeriesDisplayNames,
+    type SubmissionChartsDisplayNames,
 } from "./submission-series";
 import { parseNominations } from "./submissions";
 
-export async function calculateSubmissionSeriesFromManageResponse(
-    data: unknown,
-    names: SubmissionSeriesDisplayNames
+export async function calculateSubmissionCharts(
+    data: string,
+    names: SubmissionChartsDisplayNames
 ) {
     const nominations = parseNominations(data);
     return await calculateSubmissionSeries(nominations, names);

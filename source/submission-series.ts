@@ -60,8 +60,8 @@ function parseAsLocalTicks(dayString: Day) {
 function newMap<K, V>(): Map<K, V> {
     return new Map();
 }
-export interface SubmissionSeriesDisplayNames {
-    cumulativeTourDistance: string;
+export interface SubmissionChartsDisplayNames {
+    readonly cumulativeTourDistance: string;
     readonly acceptedRatioPerMonth: string;
     /** 累計承認率/日 */
     readonly cumulativeAcceptedRatioPerDay: string;
@@ -110,13 +110,14 @@ const statusToColor: Readonly<Partial<Record<SubmissionStatus, string>>> = {
 const lineSeries: echarts.EChartOption.SeriesLine = {
     type: "line",
     symbol: "none",
+    step: "end",
 };
 const barSeries: echarts.EChartOption.SeriesBar = {
     type: "bar",
 };
 export async function calculateSubmissionSeries(
     nominations: readonly NominationSubmission[],
-    names: SubmissionSeriesDisplayNames
+    names: SubmissionChartsDisplayNames
 ) {
     // 日時でソートする
     const nominationWithTicks = nominations
