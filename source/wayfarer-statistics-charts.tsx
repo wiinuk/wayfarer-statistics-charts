@@ -223,18 +223,19 @@ async function displayCharts(series: SubmissionSeries[]) {
     await displayDialog(chartContainerElement, ["OK"]);
 }
 
-let backgroundModule:
-    | import("comlink").Remote<import("./background.worker").Module>
-    | undefined;
-async function importBackgroundModule() {
-    if (backgroundModule) {
-        return backgroundModule;
-    }
+type RemoteBackgroundModule = Promise<
+    import("comlink").Remote<import("./background.worker").Module>
+>;
+async function loadBackgroundModule(): Promise<RemoteBackgroundModule> {
     const comlink = await import(
         "https://cdn.jsdelivr.net/npm/comlink@4.4.1/+esm"
     );
-    backgroundModule = comlink.wrap(new BackgroundWorker());
-    return backgroundModule;
+    return comlink.wrap(new BackgroundWorker());
+}
+
+let backgroundModule: Promise<RemoteBackgroundModule> | undefined;
+function importBackgroundModule() {
+    return (backgroundModule ??= loadBackgroundModule());
 }
 
 export async function asyncMain() {
