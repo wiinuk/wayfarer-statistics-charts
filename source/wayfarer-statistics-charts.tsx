@@ -10,10 +10,36 @@ import type {
 import { error } from "./standard-extensions";
 import type { EChartOption } from "echarts";
 
-function displayPreview<TChoices>(
+function makeDraggable(element: HTMLElement, handleElement: HTMLElement) {
+    let isDragging = false;
+    let offsetX = 0,
+        offsetY = 0;
+
+    element.addEventListener("mousedown", (e) => {
+        if (e.target !== handleElement) return;
+
+        isDragging = true;
+        offsetX = e.clientX - element.offsetLeft;
+        offsetY = e.clientY - element.offsetTop;
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+            element.style.left = `${e.clientX - offsetX}px`;
+            element.style.top = `${e.clientY - offsetY}px`;
+        }
+    });
+
+    document.addEventListener("mouseup", () => {
+        isDragging = false;
+    });
+}
+
+function displayDialog<TChoice extends string>(
     innerElement: HTMLElement,
-    choices: readonly TChoices[]
-): Promise<TChoices> {
+    choices: readonly TChoice[],
+    title = ""
+): Promise<TChoice> {
     return new Promise((resolve) => {
         const buttons = choices.map((choice) => {
             const button = (
@@ -27,12 +53,20 @@ function displayPreview<TChoices>(
             });
             return button;
         });
+        const titleDiv = (
+            <div class={classNames["display-preview-title"]}>{title}</div>
+        );
         const previewDiv = (
             <div class={classNames["display-preview"]}>
-                {innerElement}
-                {buttons}
+                {titleDiv}
+                <div class={classNames["display-preview-inner-container"]}>
+                    {innerElement}
+                </div>
+                <div>{buttons}</div>
             </div>
         );
+
+        makeDraggable(previewDiv, titleDiv);
 
         document.body.appendChild(previewDiv);
     });
@@ -170,7 +204,6 @@ async function displayCharts(series: SubmissionSeries[]) {
     const chartContainerElement = (
         <div class={classNames["chart-container"]} />
     ) as HTMLDivElement;
-    const displayInnerElement = <div>{chartContainerElement}</div>;
 
     const chart = echarts.init(chartContainerElement, undefined, {
         width: 300,
@@ -187,7 +220,7 @@ async function displayCharts(series: SubmissionSeries[]) {
         }
     }).observe(chartContainerElement);
 
-    await displayPreview(displayInnerElement, ["OK"]);
+    await displayDialog(chartContainerElement, ["OK"]);
 }
 
 let backgroundModule:
