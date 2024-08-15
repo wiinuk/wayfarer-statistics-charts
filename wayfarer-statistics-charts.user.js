@@ -5,7 +5,7 @@
 // @downloadURL  https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @updateURL    https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @homepageURL  https://github.com/wiinuk/wayfarer-statistics-charts
-// @version      0.1.2
+// @version      0.1.3
 // @description  Visualize statistics of Niantic Wayfarer submissions.
 // @author       Wiinuk
 // @match        https://wayfarer.nianticlabs.com/*
@@ -333,12 +333,14 @@ function sleepUntilNextAnimationFrame(options) {
 }
 
 ;// CONCATENATED MODULE: ./source/styles.module.css
-const cssText = ".display-preview-ecde2beb7811508a7e7820f3f8eb0608903cd236 {\r\n    position: fixed;\r\n    top: 50%;\r\n    left: 50%;\r\n    transform: translate(-50%, -50%);\r\n    background: repeating-linear-gradient(45deg,\r\n            #cccccc80,\r\n            #cccccc80 10px,\r\n            #ffffff80 10px,\r\n            #ffffff80 20px);\r\n    padding: 10px;\r\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);\r\n    z-index: 10000;\r\n}\r\n\r\n.display-preview-button-fd866a76b393ee0ced25dcd5fa5a66456f115e05 {\r\n    margin-top: 10px;\r\n    margin-left: 10px;\r\n}\r\n\r\n.chart-container-c3e184a8abd35a06681376e428976de86a5093a3 {\r\n    background: white;\r\n    overflow: scroll;\r\n    resize: both;\r\n}\r\n";
+const cssText = ".display-preview-9e98685151f832a0ca6e1efa70b54992df9ef572 {\r\n    position: fixed;\r\n    bottom: 0;\r\n    right: 0;\r\n    width: 400px;\r\n    height: 300px;\r\n\r\n    background: repeating-linear-gradient(45deg,\r\n            #cccccc80,\r\n            #cccccc80 10px,\r\n            #ffffff80 10px,\r\n            #ffffff80 20px);\r\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);\r\n    border-radius: 1rem 1rem 0 0;\r\n    z-index: 10000;\r\n\r\n    overflow: auto;\r\n    resize: both;\r\n    display: flex;\r\n    flex-direction: column;\r\n}\r\n.display-preview-title-2f0ee8c918fe983549b4154eeb77ceac3f3ef737 {\r\n    width: 100%;\r\n    min-height: 2em;\r\n    text-align: center;\r\n    align-content: center;\r\n    user-select: none;\r\n\r\n    padding: 0.3em;\r\n    background-color: aliceblue;\r\n    border-radius: 1rem 1rem 0 0;\r\n}\r\n.display-preview-inner-container-3060bbe4a6f3c830a43c8904c84996e4054214b0 {\r\n    flex-grow: 1;\r\n    overflow: hidden;\r\n}\r\n.display-preview-button-5553ea37638168dc8bfe6a0a2e5a9412307e9ba1 {\r\n    background: whitesmoke;\r\n    border-radius: 1rem;\r\n    padding: 0.5em 1em;\r\n    margin: 0.3em 0 0.3em 0.3em\r\n}\r\n\r\n.chart-container-165428ecf56b0188b856d799e7cc9f8322a7e9bc {\r\n    background: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n";
 const variables = {};
 /* harmony default export */ const styles_module = ({
-    "display-preview": "display-preview-ecde2beb7811508a7e7820f3f8eb0608903cd236",
-    "display-preview-button": "display-preview-button-fd866a76b393ee0ced25dcd5fa5a66456f115e05",
-    "chart-container": "chart-container-c3e184a8abd35a06681376e428976de86a5093a3",
+    "display-preview": "display-preview-9e98685151f832a0ca6e1efa70b54992df9ef572",
+    "display-preview-title": "display-preview-title-2f0ee8c918fe983549b4154eeb77ceac3f3ef737",
+    "display-preview-inner-container": "display-preview-inner-container-3060bbe4a6f3c830a43c8904c84996e4054214b0",
+    "display-preview-button": "display-preview-button-5553ea37638168dc8bfe6a0a2e5a9412307e9ba1",
+    "chart-container": "chart-container-165428ecf56b0188b856d799e7cc9f8322a7e9bc",
 });
 
 // EXTERNAL MODULE: ./node_modules/worker-loader/dist/runtime/inline.js
@@ -359,7 +361,27 @@ function Worker_fn() {
 
 
 
-function displayPreview(innerElement, choices) {
+function makeDraggable(element, handleElement) {
+    let isDragging = false;
+    let offsetX = 0, offsetY = 0;
+    element.addEventListener("mousedown", (e) => {
+        if (e.target !== handleElement)
+            return;
+        isDragging = true;
+        offsetX = e.clientX - element.offsetLeft;
+        offsetY = e.clientY - element.offsetTop;
+    });
+    document.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+            element.style.left = `${e.clientX - offsetX}px`;
+            element.style.top = `${e.clientY - offsetY}px`;
+        }
+    });
+    document.addEventListener("mouseup", () => {
+        isDragging = false;
+    });
+}
+function displayDialog(innerElement, choices, title = "") {
     return new Promise((resolve) => {
         const buttons = choices.map((choice) => {
             const button = (jsx("button", { class: styles_module["display-preview-button"], children: choice }));
@@ -369,7 +391,9 @@ function displayPreview(innerElement, choices) {
             });
             return button;
         });
-        const previewDiv = (jsxs("div", { class: styles_module["display-preview"], children: [innerElement, buttons] }));
+        const titleDiv = (jsx("div", { class: styles_module["display-preview-title"], children: title }));
+        const previewDiv = (jsxs("div", { class: styles_module["display-preview"], children: [titleDiv, jsx("div", { class: styles_module["display-preview-inner-container"], children: innerElement }), jsx("div", { children: buttons })] }));
+        makeDraggable(previewDiv, titleDiv);
         document.body.appendChild(previewDiv);
     });
 }
@@ -466,7 +490,6 @@ async function displayCharts(series) {
     const option = createEChartOptionsFromSubmissionSeries(series);
     const echarts = await Promise.resolve(/* import() */).then(__webpack_require__.bind(__webpack_require__, 229));
     const chartContainerElement = (jsx("div", { class: styles_module["chart-container"] }));
-    const displayInnerElement = jsx("div", { children: chartContainerElement });
     const chart = echarts.init(chartContainerElement, undefined, {
         width: 300,
         height: 200,
@@ -480,7 +503,7 @@ async function displayCharts(series) {
             });
         }
     }).observe(chartContainerElement);
-    await displayPreview(displayInnerElement, ["OK"]);
+    await displayDialog(chartContainerElement, ["OK"]);
 }
 let backgroundModule;
 async function importBackgroundModule() {
