@@ -1,8 +1,14 @@
-//spell-checker: ignore echarts meiryo comlink
+//spell-checker: ignore echarts meiryo comlink treemap
 import type { EChartOption } from "echarts";
 import type { SubmissionChartsDisplayNames, Ticks } from "./submission-series";
 import BackgroundWorker from "worker-loader?inline=no-fallback!./background.worker";
-import { parseNominations, type SubmissionStatus } from "./submissions";
+import {
+    parseNominations,
+    type NominationSubmission,
+    type SubmissionStatus,
+} from "./submissions";
+import { error, getOrCreate } from "./standard-extensions";
+import { escapeHtml } from "./document-extensions";
 
 function createBaseEChartOption() {
     return {
@@ -81,10 +87,6 @@ export async function* createCurrentChartOption(
         legend: {
             left: "center",
         },
-        title: {
-            text: names.currentChartTitle,
-            left: "center",
-        },
         series: [series],
     } satisfies EChartOption<EChartOption.SeriesPie>;
 }
@@ -97,10 +99,6 @@ export async function* createHistoryChartOption(
     const series = await background.calculateSubmissionCharts(response, names);
     yield {
         ...createBaseEChartOption(),
-        title: {
-            text: names.historyChartTitle,
-            left: "center",
-        },
         xAxis: {
             type: "time",
             axisLabel: {
@@ -138,4 +136,110 @@ export async function* createHistoryChartOption(
             selected: {},
         },
     } satisfies EChartOption;
+}
+
+function newMap() {
+    return new Map<never, never>();
+}
+export async function* createCitiesChartOption(
+    response: string,
+    _names: SubmissionChartsDisplayNames
+) {
+    const nominations = parseNominations(response);
+    const stateToCityToNominations = new Map<
+        string,
+        Map<string, NominationSubmission[]>
+    >();
+    for (const nomination of nominations) {
+        const { state, city } = nomination;
+        const cityToNominations = getOrCreate(
+            stateToCityToNominations,
+            state,
+            newMap
+        );
+        const nominations = getOrCreate(cityToNominations, city, Array);
+        nominations.push(nomination);
+    }
+    type DataObject = EChartOption.SeriesTreemap.DataObject;
+    const data: DataObject[] = [];
+    for (const [state, cityToNominations] of stateToCityToNominations) {
+        let nominationCountAtState = 0;
+        const childrenAtState: DataObject[] = [];
+        for (const [city, nominations] of cityToNominations) {
+            const nominationCountAtCity = nominations.length;
+            nominationCountAtState += nominationCountAtCity;
+            childrenAtState.push({
+                value: nominationCountAtCity,
+                name: city,
+            });
+        }
+        {
+            data.push({
+                value: nominationCountAtState,
+                name: state,
+                children: childrenAtState,
+            });
+        }
+        const series: EChartOption.SeriesTreemap = {
+            ...createBaseEChartOption(),
+            type: "treemap",
+            visibleMin: 300,
+            label: {
+                show: true,
+                formatter: "{b}",
+            },
+            itemStyle: {
+                borderColor: "#fff",
+            },
+            levels: [
+                {
+                    itemStyle: { borderWidth: 0, gapWidth: 5 },
+                },
+                {
+                    itemStyle: { gapWidth: 1 },
+                },
+                {
+                    //@ts-expect-error ライブラリの型付け
+                    colorSaturation: [0.35, 0.5],
+                    itemStyle: {
+                        gapWidth: 1,
+                        borderColorSaturation: "0.6",
+                    },
+                },
+            ],
+            data,
+        };
+        yield {
+            tooltip: {
+                formatter(info) {
+                    if (Array.isArray(info))
+                        return error`${info} should be an array`;
+                    const value = info.value;
+                    const treePathInfo: readonly unknown[] =
+                        "treePathInfo" in info &&
+                        Array.isArray(info.treePathInfo)
+                            ? info.treePathInfo
+                            : [];
+                    const treePath = treePathInfo.map((path) => {
+                        if (
+                            path != null &&
+                            typeof path === "object" &&
+                            "name" in path &&
+                            typeof path.name === "string"
+                        ) {
+                            return path.name;
+                        }
+                        return error`path is not a string or an array`;
+                    });
+                    return [
+                        `<div class='tooltip-title'>`,
+                        escapeHtml(treePath.join("/")),
+                        `</div>`,
+                        value == null ? "" : value,
+                    ].join("");
+                },
+            },
+            series: [series],
+        } satisfies EChartOption<EChartOption.SeriesTreemap>;
+    }
 }

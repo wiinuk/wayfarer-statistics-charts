@@ -9,6 +9,7 @@ import type {
 import { error } from "./standard-extensions";
 import type { EChartOption } from "echarts";
 import {
+    createCitiesChartOption,
     createCurrentChartOption,
     createHistoryChartOption,
 } from "./chart-options";
@@ -203,8 +204,6 @@ async function displayCharts(
 
 function getDefaultNames(): SubmissionChartsDisplayNames {
     return {
-        currentChartTitle: "現在",
-        historyChartTitle: "全期間",
         cumulativeAcceptedRatioPerDay: "承認率",
         statusCountPerMonth: "月",
         acceptedRatioPerMonth: "承認率/月",
@@ -250,6 +249,7 @@ export async function asyncMain() {
         const names = loadNames();
         await displayCharts([
             createCurrentChartOption(response, names),
+            createCitiesChartOption(response, names),
             createHistoryChartOption(response, names),
         ]);
     }

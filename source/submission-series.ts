@@ -1,4 +1,5 @@
 // spell-checker: ignore echarts
+import { getOrCreate } from "./standard-extensions";
 import type {
     Day,
     NominationSubmission,
@@ -24,30 +25,6 @@ function getStartOfLocalMonth(time: Ticks) {
     d.setHours(0, 0, 0, 0);
     return d.getTime() as MonthTicks;
 }
-type MapKey<TMap extends Map<unknown, unknown>> = TMap extends Map<
-    infer k,
-    infer _
->
-    ? k
-    : never;
-type MapValue<TMap extends Map<unknown, unknown>> = TMap extends Map<
-    infer _,
-    infer V
->
-    ? V
-    : never;
-function getOrCreate<TMap extends Map<unknown, unknown>>(
-    map: TMap,
-    key: MapKey<TMap>,
-    createValue: () => MapValue<TMap>
-) {
-    if (map.has(key)) {
-        return map.get(key) as NonNullable<MapValue<TMap>>;
-    }
-    const value = createValue();
-    map.set(key, value);
-    return value;
-}
 
 function parseAsLocalTicks(dayString: Day) {
     const [year, month, day] = dayString.split("-");
@@ -61,8 +38,6 @@ function newMap<K, V>(): Map<K, V> {
     return new Map();
 }
 export interface SubmissionChartsDisplayNames {
-    readonly currentChartTitle: string;
-    readonly historyChartTitle: string;
     readonly cumulativeTourDistance: string;
     readonly acceptedRatioPerMonth: string;
     /** 累計承認率/日 */
