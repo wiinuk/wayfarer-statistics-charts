@@ -1,7 +1,6 @@
-// spell-checker: ignore echarts comlink
+// spell-checker: ignore echarts
 import { addStyle } from "./document-extensions";
 import classNames, { cssText } from "./styles.module.css";
-import BackgroundWorker from "worker-loader?inline=no-fallback!./background.worker";
 import type {
     SubmissionSeries,
     SubmissionChartsDisplayNames,
@@ -9,7 +8,15 @@ import type {
 } from "./submission-series";
 import { error } from "./standard-extensions";
 import type { EChartOption } from "echarts";
+import {
+    createCitiesChartOption,
+    createCurrentChartOption,
+    createHistoryChartOption,
+} from "./chart-options";
 
+export function handleAsyncError(e: unknown) {
+    console.error(e);
+}
 function makeDraggable(element: HTMLElement, handleElement: HTMLElement) {
     let isDragging = false;
     let offsetX = 0,
@@ -141,75 +148,18 @@ function interceptApiToValues() {
     );
 }
 
-function createEChartOptionsFromSubmissionSeries(
-    series: SubmissionSeries[]
-): EChartOption<EChartOption.Series> {
-    return {
-        textStyle: {
-            fontFamily: "'Yu Gothic UI', 'Meiryo UI', sans-serif",
-        },
-        toolbox: {
-            feature: {
-                dataZoom: {
-                    yAxisIndex: "none",
-                },
-                restore: {},
-                saveAsImage: {},
-            },
-        },
-        xAxis: {
-            type: "time",
-            axisLabel: {
-                formatter: (value: string) => {
-                    const date = new Date(value);
-                    return `${date.getFullYear()}/${
-                        date.getMonth() + 1
-                    }/${date.getDate()}`;
-                },
-            },
-        },
-        yAxis: {
-            type: "value",
-            name: "イベント数",
-        },
-        dataZoom: [{}],
-        series,
-        tooltip: {
-            trigger: "axis",
-            formatter: (ps) => {
-                const params = Array.isArray(ps) ? ps : [ps];
-                let result = `${new Date(
-                    (params[0]?.value as [Ticks, number])[0]
-                ).toLocaleString()}<br/>`;
-                for (const param of params) {
-                    result += `${param.seriesName}: ${
-                        (param.value as [Ticks, number])[1]
-                    }<br/>`;
-                }
-                return result;
-            },
-        },
-        legend: {
-            data: series.map((series) => series.name),
-            selected: {},
-        },
-    };
-}
-
-async function displayCharts(series: SubmissionSeries[]) {
-    const option = createEChartOptionsFromSubmissionSeries(series);
-    const echarts = await import(
-        "https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.esm.min.mjs"
-    );
-    const chartContainerElement = (
+async function createResizableChartContainer() {
+    const containerElement = (
         <div class={classNames["chart-container"]} />
     ) as HTMLDivElement;
 
-    const chart = echarts.init(chartContainerElement, undefined, {
+    const echarts = await import(
+        "https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.esm.min.mjs"
+    );
+    const chart = echarts.init(containerElement, undefined, {
         width: 300,
         height: 200,
     });
-    chart.setOption(option);
 
     new ResizeObserver((entries) => {
         for (const { contentRect } of entries) {
@@ -218,53 +168,89 @@ async function displayCharts(series: SubmissionSeries[]) {
                 height: contentRect.height,
             });
         }
-    }).observe(chartContainerElement);
+    }).observe(containerElement);
 
-    await displayDialog(chartContainerElement, ["OK"]);
+    return { containerElement, chart };
 }
 
-type RemoteBackgroundModule = Promise<
-    import("comlink").Remote<import("./background.worker").Module>
->;
-async function loadBackgroundModule(): Promise<RemoteBackgroundModule> {
-    const comlink = await import(
-        "https://cdn.jsdelivr.net/npm/comlink@4.4.1/+esm"
-    );
-    return comlink.wrap(new BackgroundWorker());
+async function setChartOptionsAsync(
+    containerElement: HTMLElement,
+    dynamicOptions: AsyncIterable<EChartOption>
+) {
+    const { containerElement: element, chart } =
+        await createResizableChartContainer();
+    containerElement.appendChild(element);
+    for await (const option of dynamicOptions) {
+        chart.setOption(option);
+    }
 }
 
-let backgroundModule: Promise<RemoteBackgroundModule> | undefined;
-function importBackgroundModule() {
-    return (backgroundModule ??= loadBackgroundModule());
+async function displayCharts(
+    statistics: readonly AsyncIterable<EChartOption>[]
+) {
+    const chartContainerElements = statistics.map((dynamicOptions) => {
+        const container = <div></div>;
+        setChartOptionsAsync(container, dynamicOptions).catch((e) => {
+            container.append(
+                <div>{e instanceof Error ? e.message : String(e)}</div>
+            );
+            handleAsyncError(e);
+        });
+        return container;
+    });
+    const statisticsContainerElement = <div>{chartContainerElements}</div>;
+    await displayDialog(statisticsContainerElement, ["OK"]);
 }
 
+function getDefaultNames(): SubmissionChartsDisplayNames {
+    return {
+        cumulativeAcceptedRatioPerDay: "承認率",
+        statusCountPerMonth: "月",
+        acceptedRatioPerMonth: "承認率/月",
+        cumulativeTourDistance: "推定移動距離",
+        statuses: {
+            ACCEPTED: "承認",
+            DUPLICATE: "重複",
+            HELD: "保留",
+            NOMINATED: "審査中",
+            REJECTED: "否認",
+            VOTING: "投票中",
+            WITHDRAWN: "取下済",
+        },
+    };
+}
+const statisticsNamesKey =
+    "wayfarer-statistics-names-0f7497e6-35bc-4810-88e4-1d2510b4ae08";
+function loadNames(): SubmissionChartsDisplayNames {
+    const names = localStorage.getItem(statisticsNamesKey);
+    if (names == null) {
+        return getDefaultNames();
+    }
+    try {
+        return {
+            ...getDefaultNames(),
+            ...JSON.parse(names),
+            // TODO: statuses のマージ
+        };
+    } catch (e) {
+        return getDefaultNames();
+    }
+}
 export async function asyncMain() {
     addStyle(cssText);
 
     for await (const value of await interceptApiToValues()) {
-        const r: unknown = (value.currentTarget as XMLHttpRequest).response;
-        console.debug("manage response: ", r);
-        if (typeof r !== "string") return error`response must be a string`;
+        const response: unknown = (value.currentTarget as XMLHttpRequest)
+            .response;
+        console.debug("manage response: ", response);
+        if (typeof response !== "string")
+            return error`response must be a string`;
 
-        const names = {
-            cumulativeAcceptedRatioPerDay: "承認率",
-            statusCountPerMonth: "月",
-            acceptedRatioPerMonth: "承認率/月",
-            cumulativeTourDistance: "推定移動距離",
-            statuses: {
-                ACCEPTED: "承認",
-                DUPLICATE: "重複",
-                HELD: "保留",
-                NOMINATED: "審査中",
-                REJECTED: "否認",
-                VOTING: "投票中",
-                WITHDRAWN: "取下済",
-            },
-        } satisfies SubmissionChartsDisplayNames;
-
-        const backgroundModule = await importBackgroundModule();
-        const submissionSeries =
-            await backgroundModule.calculateSubmissionCharts(r, names);
-        await displayCharts(submissionSeries);
+        const names = loadNames();
+        await displayCharts([
+            createCurrentChartOption(response, names),
+            createCitiesChartOption(response, names),
+            createHistoryChartOption(response, names),
+        ]);
     }
 }

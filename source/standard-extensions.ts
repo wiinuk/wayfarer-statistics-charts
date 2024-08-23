@@ -283,3 +283,28 @@ export type ReadonlyStructuredCloneable =
     | { readonly [key: string]: StructuredCloneable }
     | ReadonlyMap<StructuredCloneable, StructuredCloneable>
     | ReadonlySet<StructuredCloneable>;
+
+type MapKey<TMap extends Map<unknown, unknown>> = TMap extends Map<
+    infer k,
+    infer _
+>
+    ? k
+    : never;
+type MapValue<TMap extends Map<unknown, unknown>> = TMap extends Map<
+    infer _,
+    infer V
+>
+    ? V
+    : never;
+export function getOrCreate<TMap extends Map<unknown, unknown>>(
+    map: TMap,
+    key: MapKey<TMap>,
+    createValue: () => MapValue<TMap>
+) {
+    if (map.has(key)) {
+        return map.get(key) as NonNullable<MapValue<TMap>>;
+    }
+    const value = createValue();
+    map.set(key, value);
+    return value;
+}

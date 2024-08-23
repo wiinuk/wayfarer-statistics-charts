@@ -32,7 +32,7 @@
 }
 .display-preview-inner-container {
     flex-grow: 1;
-    overflow: hidden;
+    overflow: auto;
 }
 .display-preview-button {
     background: whitesmoke;
@@ -42,7 +42,10 @@
 }
 
 .chart-container {
+    resize: vertical;
+    overflow: auto;
+
     background: white;
     width: 100%;
-    height: 100%;
+    height: 300px;
 }
