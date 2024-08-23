@@ -5,7 +5,7 @@
 // @downloadURL  https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @updateURL    https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @homepageURL  https://github.com/wiinuk/wayfarer-statistics-charts
-// @version      0.1.3
+// @version      0.2.0
 // @description  Visualize statistics of Niantic Wayfarer submissions.
 // @author       Wiinuk
 // @match        https://wayfarer.nianticlabs.com/*
@@ -17,7 +17,7 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 589:
+/***/ 999:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 
@@ -25,6 +25,8 @@
 __webpack_require__.d(__webpack_exports__, {
   c: () => (/* binding */ asyncMain)
 });
+
+// UNUSED EXPORTS: handleAsyncError
 
 ;// CONCATENATED MODULE: ./source/document-jsx/jsx-runtime.ts
 function jsxs(name, properties, 
@@ -200,6 +202,14 @@ function pipe(value, ...processes) {
     return a;
 }
 const isArray = Array.isArray;
+function getOrCreate(map, key, createValue) {
+    if (map.has(key)) {
+        return map.get(key);
+    }
+    const value = createValue();
+    map.set(key, value);
+    return value;
+}
 
 ;// CONCATENATED MODULE: ./source/document-extensions.ts
 
@@ -333,14 +343,14 @@ function sleepUntilNextAnimationFrame(options) {
 }
 
 ;// CONCATENATED MODULE: ./source/styles.module.css
-const cssText = ".display-preview-9e98685151f832a0ca6e1efa70b54992df9ef572 {\r\n    position: fixed;\r\n    bottom: 0;\r\n    right: 0;\r\n    width: 400px;\r\n    height: 300px;\r\n\r\n    background: repeating-linear-gradient(45deg,\r\n            #cccccc80,\r\n            #cccccc80 10px,\r\n            #ffffff80 10px,\r\n            #ffffff80 20px);\r\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);\r\n    border-radius: 1rem 1rem 0 0;\r\n    z-index: 10000;\r\n\r\n    overflow: auto;\r\n    resize: both;\r\n    display: flex;\r\n    flex-direction: column;\r\n}\r\n.display-preview-title-2f0ee8c918fe983549b4154eeb77ceac3f3ef737 {\r\n    width: 100%;\r\n    min-height: 2em;\r\n    text-align: center;\r\n    align-content: center;\r\n    user-select: none;\r\n\r\n    padding: 0.3em;\r\n    background-color: aliceblue;\r\n    border-radius: 1rem 1rem 0 0;\r\n}\r\n.display-preview-inner-container-3060bbe4a6f3c830a43c8904c84996e4054214b0 {\r\n    flex-grow: 1;\r\n    overflow: hidden;\r\n}\r\n.display-preview-button-5553ea37638168dc8bfe6a0a2e5a9412307e9ba1 {\r\n    background: whitesmoke;\r\n    border-radius: 1rem;\r\n    padding: 0.5em 1em;\r\n    margin: 0.3em 0 0.3em 0.3em\r\n}\r\n\r\n.chart-container-165428ecf56b0188b856d799e7cc9f8322a7e9bc {\r\n    background: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n";
+const cssText = ".display-preview-7f5adab7c238c660ea9f2a4e8f190fbdf94a04f8 {\r\n    position: fixed;\r\n    bottom: 0;\r\n    right: 0;\r\n    width: 400px;\r\n    height: 300px;\r\n\r\n    background: repeating-linear-gradient(45deg,\r\n            #cccccc80,\r\n            #cccccc80 10px,\r\n            #ffffff80 10px,\r\n            #ffffff80 20px);\r\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);\r\n    border-radius: 1rem 1rem 0 0;\r\n    z-index: 10000;\r\n\r\n    overflow: auto;\r\n    resize: both;\r\n    display: flex;\r\n    flex-direction: column;\r\n}\r\n.display-preview-title-c71c9bdc324759695a97b03b6436a67a15f68384 {\r\n    width: 100%;\r\n    min-height: 2em;\r\n    text-align: center;\r\n    align-content: center;\r\n    user-select: none;\r\n\r\n    padding: 0.3em;\r\n    background-color: aliceblue;\r\n    border-radius: 1rem 1rem 0 0;\r\n}\r\n.display-preview-inner-container-0f808581fb3cf8c99451385de4964219c3c31b39 {\r\n    flex-grow: 1;\r\n    overflow: auto;\r\n}\r\n.display-preview-button-5b5c854b53ec01ab27ecc41b2f96d554c7e851dc {\r\n    background: whitesmoke;\r\n    border-radius: 1rem;\r\n    padding: 0.5em 1em;\r\n    margin: 0.3em 0 0.3em 0.3em\r\n}\r\n\r\n.chart-container-edcb73241ae79541b08978715bc45010de609be4 {\r\n    resize: vertical;\r\n    overflow: auto;\r\n\r\n    background: white;\r\n    width: 100%;\r\n    height: 300px;\r\n}\r\n";
 const variables = {};
 /* harmony default export */ const styles_module = ({
-    "display-preview": "display-preview-9e98685151f832a0ca6e1efa70b54992df9ef572",
-    "display-preview-title": "display-preview-title-2f0ee8c918fe983549b4154eeb77ceac3f3ef737",
-    "display-preview-inner-container": "display-preview-inner-container-3060bbe4a6f3c830a43c8904c84996e4054214b0",
-    "display-preview-button": "display-preview-button-5553ea37638168dc8bfe6a0a2e5a9412307e9ba1",
-    "chart-container": "chart-container-165428ecf56b0188b856d799e7cc9f8322a7e9bc",
+    "display-preview": "display-preview-7f5adab7c238c660ea9f2a4e8f190fbdf94a04f8",
+    "display-preview-title": "display-preview-title-c71c9bdc324759695a97b03b6436a67a15f68384",
+    "display-preview-inner-container": "display-preview-inner-container-0f808581fb3cf8c99451385de4964219c3c31b39",
+    "display-preview-button": "display-preview-button-5b5c854b53ec01ab27ecc41b2f96d554c7e851dc",
+    "chart-container": "chart-container-edcb73241ae79541b08978715bc45010de609be4",
 });
 
 // EXTERNAL MODULE: ./node_modules/worker-loader/dist/runtime/inline.js
@@ -351,16 +361,232 @@ var inline_default = /*#__PURE__*/__webpack_require__.n(inline);
 
 
 function Worker_fn() {
-  return inline_default()("/******/ (() => { // webpackBootstrap\n/******/ \t\"use strict\";\n/******/ \t// The require scope\n/******/ \tvar __webpack_require__ = {};\n/******/ \t\n/************************************************************************/\n/******/ \t/* webpack/runtime/define property getters */\n/******/ \t(() => {\n/******/ \t\t// define getter functions for harmony exports\n/******/ \t\t__webpack_require__.d = (exports, definition) => {\n/******/ \t\t\tfor(var key in definition) {\n/******/ \t\t\t\tif(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {\n/******/ \t\t\t\t\tObject.defineProperty(exports, key, { enumerable: true, get: definition[key] });\n/******/ \t\t\t\t}\n/******/ \t\t\t}\n/******/ \t\t};\n/******/ \t})();\n/******/ \t\n/******/ \t/* webpack/runtime/hasOwnProperty shorthand */\n/******/ \t(() => {\n/******/ \t\t__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))\n/******/ \t})();\n/******/ \t\n/******/ \t/* webpack/runtime/make namespace object */\n/******/ \t(() => {\n/******/ \t\t// define __esModule on exports\n/******/ \t\t__webpack_require__.r = (exports) => {\n/******/ \t\t\tif(typeof Symbol !== 'undefined' && Symbol.toStringTag) {\n/******/ \t\t\t\tObject.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });\n/******/ \t\t\t}\n/******/ \t\t\tObject.defineProperty(exports, '__esModule', { value: true });\n/******/ \t\t};\n/******/ \t})();\n/******/ \t\n/************************************************************************/\nvar __webpack_exports__ = {};\n\n// NAMESPACE OBJECT: ./source/background-module.ts\nvar background_module_namespaceObject = {};\n__webpack_require__.r(background_module_namespaceObject);\n__webpack_require__.d(background_module_namespaceObject, {\n  calculateSubmissionCharts: () => (calculateSubmissionCharts)\n});\n\n;// CONCATENATED MODULE: ./node_modules/comlink/dist/esm/comlink.mjs\n/**\n * @license\n * Copyright 2019 Google LLC\n * SPDX-License-Identifier: Apache-2.0\n */\nconst proxyMarker = Symbol(\"Comlink.proxy\");\nconst createEndpoint = Symbol(\"Comlink.endpoint\");\nconst releaseProxy = Symbol(\"Comlink.releaseProxy\");\nconst finalizer = Symbol(\"Comlink.finalizer\");\nconst throwMarker = Symbol(\"Comlink.thrown\");\nconst isObject = (val) => (typeof val === \"object\" && val !== null) || typeof val === \"function\";\n/**\n * Internal transfer handle to handle objects marked to proxy.\n */\nconst proxyTransferHandler = {\n    canHandle: (val) => isObject(val) && val[proxyMarker],\n    serialize(obj) {\n        const { port1, port2 } = new MessageChannel();\n        expose(obj, port1);\n        return [port2, [port2]];\n    },\n    deserialize(port) {\n        port.start();\n        return wrap(port);\n    },\n};\n/**\n * Internal transfer handler to handle thrown exceptions.\n */\nconst throwTransferHandler = {\n    canHandle: (value) => isObject(value) && throwMarker in value,\n    serialize({ value }) {\n        let serialized;\n        if (value instanceof Error) {\n            serialized = {\n                isError: true,\n                value: {\n                    message: value.message,\n                    name: value.name,\n                    stack: value.stack,\n                },\n            };\n        }\n        else {\n            serialized = { isError: false, value };\n        }\n        return [serialized, []];\n    },\n    deserialize(serialized) {\n        if (serialized.isError) {\n            throw Object.assign(new Error(serialized.value.message), serialized.value);\n        }\n        throw serialized.value;\n    },\n};\n/**\n * Allows customizing the serialization of certain values.\n */\nconst transferHandlers = new Map([\n    [\"proxy\", proxyTransferHandler],\n    [\"throw\", throwTransferHandler],\n]);\nfunction isAllowedOrigin(allowedOrigins, origin) {\n    for (const allowedOrigin of allowedOrigins) {\n        if (origin === allowedOrigin || allowedOrigin === \"*\") {\n            return true;\n        }\n        if (allowedOrigin instanceof RegExp && allowedOrigin.test(origin)) {\n            return true;\n        }\n    }\n    return false;\n}\nfunction expose(obj, ep = globalThis, allowedOrigins = [\"*\"]) {\n    ep.addEventListener(\"message\", function callback(ev) {\n        if (!ev || !ev.data) {\n            return;\n        }\n        if (!isAllowedOrigin(allowedOrigins, ev.origin)) {\n            console.warn(`Invalid origin '${ev.origin}' for comlink proxy`);\n            return;\n        }\n        const { id, type, path } = Object.assign({ path: [] }, ev.data);\n        const argumentList = (ev.data.argumentList || []).map(fromWireValue);\n        let returnValue;\n        try {\n            const parent = path.slice(0, -1).reduce((obj, prop) => obj[prop], obj);\n            const rawValue = path.reduce((obj, prop) => obj[prop], obj);\n            switch (type) {\n                case \"GET\" /* MessageType.GET */:\n                    {\n                        returnValue = rawValue;\n                    }\n                    break;\n                case \"SET\" /* MessageType.SET */:\n                    {\n                        parent[path.slice(-1)[0]] = fromWireValue(ev.data.value);\n                        returnValue = true;\n                    }\n                    break;\n                case \"APPLY\" /* MessageType.APPLY */:\n                    {\n                        returnValue = rawValue.apply(parent, argumentList);\n                    }\n                    break;\n                case \"CONSTRUCT\" /* MessageType.CONSTRUCT */:\n                    {\n                        const value = new rawValue(...argumentList);\n                        returnValue = proxy(value);\n                    }\n                    break;\n                case \"ENDPOINT\" /* MessageType.ENDPOINT */:\n                    {\n                        const { port1, port2 } = new MessageChannel();\n                        expose(obj, port2);\n                        returnValue = transfer(port1, [port1]);\n                    }\n                    break;\n                case \"RELEASE\" /* MessageType.RELEASE */:\n                    {\n                        returnValue = undefined;\n                    }\n                    break;\n                default:\n                    return;\n            }\n        }\n        catch (value) {\n            returnValue = { value, [throwMarker]: 0 };\n        }\n        Promise.resolve(returnValue)\n            .catch((value) => {\n            return { value, [throwMarker]: 0 };\n        })\n            .then((returnValue) => {\n            const [wireValue, transferables] = toWireValue(returnValue);\n            ep.postMessage(Object.assign(Object.assign({}, wireValue), { id }), transferables);\n            if (type === \"RELEASE\" /* MessageType.RELEASE */) {\n                // detach and deactive after sending release response above.\n                ep.removeEventListener(\"message\", callback);\n                closeEndPoint(ep);\n                if (finalizer in obj && typeof obj[finalizer] === \"function\") {\n                    obj[finalizer]();\n                }\n            }\n        })\n            .catch((error) => {\n            // Send Serialization Error To Caller\n            const [wireValue, transferables] = toWireValue({\n                value: new TypeError(\"Unserializable return value\"),\n                [throwMarker]: 0,\n            });\n            ep.postMessage(Object.assign(Object.assign({}, wireValue), { id }), transferables);\n        });\n    });\n    if (ep.start) {\n        ep.start();\n    }\n}\nfunction isMessagePort(endpoint) {\n    return endpoint.constructor.name === \"MessagePort\";\n}\nfunction closeEndPoint(endpoint) {\n    if (isMessagePort(endpoint))\n        endpoint.close();\n}\nfunction wrap(ep, target) {\n    return createProxy(ep, [], target);\n}\nfunction throwIfProxyReleased(isReleased) {\n    if (isReleased) {\n        throw new Error(\"Proxy has been released and is not useable\");\n    }\n}\nfunction releaseEndpoint(ep) {\n    return requestResponseMessage(ep, {\n        type: \"RELEASE\" /* MessageType.RELEASE */,\n    }).then(() => {\n        closeEndPoint(ep);\n    });\n}\nconst proxyCounter = new WeakMap();\nconst proxyFinalizers = \"FinalizationRegistry\" in globalThis &&\n    new FinalizationRegistry((ep) => {\n        const newCount = (proxyCounter.get(ep) || 0) - 1;\n        proxyCounter.set(ep, newCount);\n        if (newCount === 0) {\n            releaseEndpoint(ep);\n        }\n    });\nfunction registerProxy(proxy, ep) {\n    const newCount = (proxyCounter.get(ep) || 0) + 1;\n    proxyCounter.set(ep, newCount);\n    if (proxyFinalizers) {\n        proxyFinalizers.register(proxy, ep, proxy);\n    }\n}\nfunction unregisterProxy(proxy) {\n    if (proxyFinalizers) {\n        proxyFinalizers.unregister(proxy);\n    }\n}\nfunction createProxy(ep, path = [], target = function () { }) {\n    let isProxyReleased = false;\n    const proxy = new Proxy(target, {\n        get(_target, prop) {\n            throwIfProxyReleased(isProxyReleased);\n            if (prop === releaseProxy) {\n                return () => {\n                    unregisterProxy(proxy);\n                    releaseEndpoint(ep);\n                    isProxyReleased = true;\n                };\n            }\n            if (prop === \"then\") {\n                if (path.length === 0) {\n                    return { then: () => proxy };\n                }\n                const r = requestResponseMessage(ep, {\n                    type: \"GET\" /* MessageType.GET */,\n                    path: path.map((p) => p.toString()),\n                }).then(fromWireValue);\n                return r.then.bind(r);\n            }\n            return createProxy(ep, [...path, prop]);\n        },\n        set(_target, prop, rawValue) {\n            throwIfProxyReleased(isProxyReleased);\n            // FIXME: ES6 Proxy Handler `set` methods are supposed to return a\n            // boolean. To show good will, we return true asynchronously ¯\\_(ツ)_/¯\n            const [value, transferables] = toWireValue(rawValue);\n            return requestResponseMessage(ep, {\n                type: \"SET\" /* MessageType.SET */,\n                path: [...path, prop].map((p) => p.toString()),\n                value,\n            }, transferables).then(fromWireValue);\n        },\n        apply(_target, _thisArg, rawArgumentList) {\n            throwIfProxyReleased(isProxyReleased);\n            const last = path[path.length - 1];\n            if (last === createEndpoint) {\n                return requestResponseMessage(ep, {\n                    type: \"ENDPOINT\" /* MessageType.ENDPOINT */,\n                }).then(fromWireValue);\n            }\n            // We just pretend that `bind()` didn’t happen.\n            if (last === \"bind\") {\n                return createProxy(ep, path.slice(0, -1));\n            }\n            const [argumentList, transferables] = processArguments(rawArgumentList);\n            return requestResponseMessage(ep, {\n                type: \"APPLY\" /* MessageType.APPLY */,\n                path: path.map((p) => p.toString()),\n                argumentList,\n            }, transferables).then(fromWireValue);\n        },\n        construct(_target, rawArgumentList) {\n            throwIfProxyReleased(isProxyReleased);\n            const [argumentList, transferables] = processArguments(rawArgumentList);\n            return requestResponseMessage(ep, {\n                type: \"CONSTRUCT\" /* MessageType.CONSTRUCT */,\n                path: path.map((p) => p.toString()),\n                argumentList,\n            }, transferables).then(fromWireValue);\n        },\n    });\n    registerProxy(proxy, ep);\n    return proxy;\n}\nfunction myFlat(arr) {\n    return Array.prototype.concat.apply([], arr);\n}\nfunction processArguments(argumentList) {\n    const processed = argumentList.map(toWireValue);\n    return [processed.map((v) => v[0]), myFlat(processed.map((v) => v[1]))];\n}\nconst transferCache = new WeakMap();\nfunction transfer(obj, transfers) {\n    transferCache.set(obj, transfers);\n    return obj;\n}\nfunction proxy(obj) {\n    return Object.assign(obj, { [proxyMarker]: true });\n}\nfunction windowEndpoint(w, context = globalThis, targetOrigin = \"*\") {\n    return {\n        postMessage: (msg, transferables) => w.postMessage(msg, targetOrigin, transferables),\n        addEventListener: context.addEventListener.bind(context),\n        removeEventListener: context.removeEventListener.bind(context),\n    };\n}\nfunction toWireValue(value) {\n    for (const [name, handler] of transferHandlers) {\n        if (handler.canHandle(value)) {\n            const [serializedValue, transferables] = handler.serialize(value);\n            return [\n                {\n                    type: \"HANDLER\" /* WireValueType.HANDLER */,\n                    name,\n                    value: serializedValue,\n                },\n                transferables,\n            ];\n        }\n    }\n    return [\n        {\n            type: \"RAW\" /* WireValueType.RAW */,\n            value,\n        },\n        transferCache.get(value) || [],\n    ];\n}\nfunction fromWireValue(value) {\n    switch (value.type) {\n        case \"HANDLER\" /* WireValueType.HANDLER */:\n            return transferHandlers.get(value.name).deserialize(value.value);\n        case \"RAW\" /* WireValueType.RAW */:\n            return value.value;\n    }\n}\nfunction requestResponseMessage(ep, msg, transfers) {\n    return new Promise((resolve) => {\n        const id = generateUUID();\n        ep.addEventListener(\"message\", function l(ev) {\n            if (!ev.data || !ev.data.id || ev.data.id !== id) {\n                return;\n            }\n            ep.removeEventListener(\"message\", l);\n            resolve(ev.data);\n        });\n        if (ep.start) {\n            ep.start();\n        }\n        ep.postMessage(Object.assign({ id }, msg), transfers);\n    });\n}\nfunction generateUUID() {\n    return new Array(4)\n        .fill(0)\n        .map(() => Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(16))\n        .join(\"-\");\n}\n\n\n;// CONCATENATED MODULE: ./source/submission-series.ts\nconst privateTaggedSymbol = Symbol(\"privateTaggedSymbol\");\nlet tempDate = null;\nfunction getStartOfLocalMonth(time) {\n    const d = (tempDate ?? (tempDate = new Date()));\n    d.setTime(time);\n    d.setDate(1);\n    d.setHours(0, 0, 0, 0);\n    return d.getTime();\n}\nfunction getOrCreate(map, key, createValue) {\n    if (map.has(key)) {\n        return map.get(key);\n    }\n    const value = createValue();\n    map.set(key, value);\n    return value;\n}\nfunction parseAsLocalTicks(dayString) {\n    const [year, month, day] = dayString.split(\"-\");\n    const d = (tempDate ?? (tempDate = new Date()));\n    d.setTime(0);\n    d.setFullYear(Number(year), Number(month) - 1, Number(day));\n    d.setHours(0, 0, 0, 0);\n    return d.getTime();\n}\nfunction newMap() {\n    return new Map();\n}\nfunction calculateAcceptedRatios(periodToStatusToNominations, cumulative) {\n    // 一定期間毎の承認率を算出\n    // 承認率 = 承認数 / (承認数 + 否認数 + 重複数 + 取下数)\n    let acceptedCount = 0;\n    let notAcceptedCount = 0;\n    const data = [];\n    for (const [period, statuses] of periodToStatusToNominations) {\n        const acceptedPerPeriod = statuses.get(\"ACCEPTED\")?.length ?? 0;\n        const notAcceptedPerPeriod = (statuses.get(\"REJECTED\")?.length ?? 0) +\n            (statuses.get(\"DUPLICATE\")?.length ?? 0) +\n            (statuses.get(\"WITHDRAWN\")?.length ?? 0);\n        acceptedCount = cumulative\n            ? acceptedCount + acceptedPerPeriod\n            : acceptedPerPeriod;\n        notAcceptedCount = cumulative\n            ? notAcceptedCount + notAcceptedPerPeriod\n            : notAcceptedPerPeriod;\n        if (0 === acceptedCount + notAcceptedCount)\n            continue;\n        data.push([period, acceptedCount / (acceptedCount + notAcceptedCount)]);\n    }\n    return data;\n}\nconst statusToColor = {\n    ACCEPTED: \"#15803d\", // 緑 ( 公式 )\n    REJECTED: \"#dc2626\", // 赤 ( 公式 )\n    DUPLICATE: \"#dc9c26\", // オレンジ\n    HELD: \"#211580\", // 青\n    WITHDRAWN: \"#c026dc\", // 紫\n};\nconst lineSeries = {\n    type: \"line\",\n    symbol: \"none\",\n    step: \"end\",\n};\nconst barSeries = {\n    type: \"bar\",\n};\nasync function calculateSubmissionSeries(nominations, names) {\n    // 日時でソートする\n    const nominationWithTicks = nominations\n        .map((n) => ({\n        ...n,\n        dayTicks: parseAsLocalTicks(n.day),\n    }))\n        .sort((a, b) => a.dayTicks - b.dayTicks);\n    // インデックスを作成\n    const dayToStatusToNominations = new Map();\n    const statusToDayToNominations = new Map();\n    const dayToNominations = new Map();\n    const statusToMonthToNominations = new Map();\n    const monthToStatusToNominations = new Map();\n    for (const n of nominationWithTicks) {\n        const month = getStartOfLocalMonth(n.dayTicks);\n        getOrCreate(getOrCreate(dayToStatusToNominations, n.dayTicks, newMap), n.status, Array).push(n);\n        getOrCreate(getOrCreate(statusToDayToNominations, n.status, newMap), n.dayTicks, Array).push(n);\n        getOrCreate(dayToNominations, n.dayTicks, Array).push(n);\n        getOrCreate(getOrCreate(statusToMonthToNominations, n.status, newMap), month, Array).push(n);\n        getOrCreate(getOrCreate(monthToStatusToNominations, month, newMap), n.status, Array).push(n);\n    }\n    const result = [];\n    // 日毎の累計状態数\n    for (const [status, days] of statusToDayToNominations) {\n        const data = [];\n        let cumulativeCount = 0;\n        for (const [day, nominations] of days) {\n            data.push([day, (cumulativeCount += nominations.length)]);\n        }\n        result.push({\n            ...lineSeries,\n            name: `${names.statuses[status] || status}`,\n            data,\n            itemStyle: {\n                color: statusToColor[status],\n            },\n        });\n    }\n    // 月毎状態数\n    for (const [status, months] of statusToMonthToNominations) {\n        const data = [];\n        for (const [month, nominations] of months) {\n            data.push([month, nominations.length]);\n        }\n        result.push({\n            ...barSeries,\n            name: `${names.statuses[status] || status}/${names.statusCountPerMonth}`,\n            data,\n            itemStyle: {\n                color: statusToColor[status],\n            },\n        });\n    }\n    // 日毎の累計承認率\n    result.push({\n        ...lineSeries,\n        name: names.cumulativeAcceptedRatioPerDay,\n        data: calculateAcceptedRatios(dayToStatusToNominations, true),\n        itemStyle: { color: statusToColor[\"ACCEPTED\"] },\n    });\n    // 月毎の承認率\n    result.push({\n        ...barSeries,\n        name: names.acceptedRatioPerMonth,\n        data: calculateAcceptedRatios(monthToStatusToNominations, false),\n    });\n    return result;\n}\n\n;// CONCATENATED MODULE: ./source/submissions.ts\nfunction parseNominations(response) {\n    const json = JSON.parse(response);\n    if (json == null)\n        throw new Error(\"Invalid response from Wayfarer\");\n    /** TODO: zod などで実行時チェックする */\n    const data = json;\n    const nominations = data.result.submissions.filter((s) => s.type === \"NOMINATION\");\n    return nominations;\n}\n\n;// CONCATENATED MODULE: ./source/background-module.ts\n\n\nasync function calculateSubmissionCharts(data, names) {\n    const nominations = parseNominations(data);\n    return await calculateSubmissionSeries(nominations, names);\n}\n\n;// CONCATENATED MODULE: ./node_modules/ts-loader/index.js!./source/background.worker.ts\n\n\nexpose(background_module_namespaceObject);\n\n/******/ })()\n;\n//# sourceMappingURL=wayfarer-statistics-charts.user.worker.js.map", "Worker", undefined, undefined);
+  return inline_default()("/******/ (() => { // webpackBootstrap\n/******/ \t\"use strict\";\n/******/ \t// The require scope\n/******/ \tvar __webpack_require__ = {};\n/******/ \t\n/************************************************************************/\n/******/ \t/* webpack/runtime/define property getters */\n/******/ \t(() => {\n/******/ \t\t// define getter functions for harmony exports\n/******/ \t\t__webpack_require__.d = (exports, definition) => {\n/******/ \t\t\tfor(var key in definition) {\n/******/ \t\t\t\tif(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {\n/******/ \t\t\t\t\tObject.defineProperty(exports, key, { enumerable: true, get: definition[key] });\n/******/ \t\t\t\t}\n/******/ \t\t\t}\n/******/ \t\t};\n/******/ \t})();\n/******/ \t\n/******/ \t/* webpack/runtime/hasOwnProperty shorthand */\n/******/ \t(() => {\n/******/ \t\t__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))\n/******/ \t})();\n/******/ \t\n/******/ \t/* webpack/runtime/make namespace object */\n/******/ \t(() => {\n/******/ \t\t// define __esModule on exports\n/******/ \t\t__webpack_require__.r = (exports) => {\n/******/ \t\t\tif(typeof Symbol !== 'undefined' && Symbol.toStringTag) {\n/******/ \t\t\t\tObject.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });\n/******/ \t\t\t}\n/******/ \t\t\tObject.defineProperty(exports, '__esModule', { value: true });\n/******/ \t\t};\n/******/ \t})();\n/******/ \t\n/************************************************************************/\nvar __webpack_exports__ = {};\n\n// NAMESPACE OBJECT: ./source/background-module.ts\nvar background_module_namespaceObject = {};\n__webpack_require__.r(background_module_namespaceObject);\n__webpack_require__.d(background_module_namespaceObject, {\n  calculateSubmissionCharts: () => (calculateSubmissionCharts)\n});\n\n;// CONCATENATED MODULE: ./node_modules/comlink/dist/esm/comlink.mjs\n/**\n * @license\n * Copyright 2019 Google LLC\n * SPDX-License-Identifier: Apache-2.0\n */\nconst proxyMarker = Symbol(\"Comlink.proxy\");\nconst createEndpoint = Symbol(\"Comlink.endpoint\");\nconst releaseProxy = Symbol(\"Comlink.releaseProxy\");\nconst finalizer = Symbol(\"Comlink.finalizer\");\nconst throwMarker = Symbol(\"Comlink.thrown\");\nconst isObject = (val) => (typeof val === \"object\" && val !== null) || typeof val === \"function\";\n/**\n * Internal transfer handle to handle objects marked to proxy.\n */\nconst proxyTransferHandler = {\n    canHandle: (val) => isObject(val) && val[proxyMarker],\n    serialize(obj) {\n        const { port1, port2 } = new MessageChannel();\n        expose(obj, port1);\n        return [port2, [port2]];\n    },\n    deserialize(port) {\n        port.start();\n        return wrap(port);\n    },\n};\n/**\n * Internal transfer handler to handle thrown exceptions.\n */\nconst throwTransferHandler = {\n    canHandle: (value) => isObject(value) && throwMarker in value,\n    serialize({ value }) {\n        let serialized;\n        if (value instanceof Error) {\n            serialized = {\n                isError: true,\n                value: {\n                    message: value.message,\n                    name: value.name,\n                    stack: value.stack,\n                },\n            };\n        }\n        else {\n            serialized = { isError: false, value };\n        }\n        return [serialized, []];\n    },\n    deserialize(serialized) {\n        if (serialized.isError) {\n            throw Object.assign(new Error(serialized.value.message), serialized.value);\n        }\n        throw serialized.value;\n    },\n};\n/**\n * Allows customizing the serialization of certain values.\n */\nconst transferHandlers = new Map([\n    [\"proxy\", proxyTransferHandler],\n    [\"throw\", throwTransferHandler],\n]);\nfunction isAllowedOrigin(allowedOrigins, origin) {\n    for (const allowedOrigin of allowedOrigins) {\n        if (origin === allowedOrigin || allowedOrigin === \"*\") {\n            return true;\n        }\n        if (allowedOrigin instanceof RegExp && allowedOrigin.test(origin)) {\n            return true;\n        }\n    }\n    return false;\n}\nfunction expose(obj, ep = globalThis, allowedOrigins = [\"*\"]) {\n    ep.addEventListener(\"message\", function callback(ev) {\n        if (!ev || !ev.data) {\n            return;\n        }\n        if (!isAllowedOrigin(allowedOrigins, ev.origin)) {\n            console.warn(`Invalid origin '${ev.origin}' for comlink proxy`);\n            return;\n        }\n        const { id, type, path } = Object.assign({ path: [] }, ev.data);\n        const argumentList = (ev.data.argumentList || []).map(fromWireValue);\n        let returnValue;\n        try {\n            const parent = path.slice(0, -1).reduce((obj, prop) => obj[prop], obj);\n            const rawValue = path.reduce((obj, prop) => obj[prop], obj);\n            switch (type) {\n                case \"GET\" /* MessageType.GET */:\n                    {\n                        returnValue = rawValue;\n                    }\n                    break;\n                case \"SET\" /* MessageType.SET */:\n                    {\n                        parent[path.slice(-1)[0]] = fromWireValue(ev.data.value);\n                        returnValue = true;\n                    }\n                    break;\n                case \"APPLY\" /* MessageType.APPLY */:\n                    {\n                        returnValue = rawValue.apply(parent, argumentList);\n                    }\n                    break;\n                case \"CONSTRUCT\" /* MessageType.CONSTRUCT */:\n                    {\n                        const value = new rawValue(...argumentList);\n                        returnValue = proxy(value);\n                    }\n                    break;\n                case \"ENDPOINT\" /* MessageType.ENDPOINT */:\n                    {\n                        const { port1, port2 } = new MessageChannel();\n                        expose(obj, port2);\n                        returnValue = transfer(port1, [port1]);\n                    }\n                    break;\n                case \"RELEASE\" /* MessageType.RELEASE */:\n                    {\n                        returnValue = undefined;\n                    }\n                    break;\n                default:\n                    return;\n            }\n        }\n        catch (value) {\n            returnValue = { value, [throwMarker]: 0 };\n        }\n        Promise.resolve(returnValue)\n            .catch((value) => {\n            return { value, [throwMarker]: 0 };\n        })\n            .then((returnValue) => {\n            const [wireValue, transferables] = toWireValue(returnValue);\n            ep.postMessage(Object.assign(Object.assign({}, wireValue), { id }), transferables);\n            if (type === \"RELEASE\" /* MessageType.RELEASE */) {\n                // detach and deactive after sending release response above.\n                ep.removeEventListener(\"message\", callback);\n                closeEndPoint(ep);\n                if (finalizer in obj && typeof obj[finalizer] === \"function\") {\n                    obj[finalizer]();\n                }\n            }\n        })\n            .catch((error) => {\n            // Send Serialization Error To Caller\n            const [wireValue, transferables] = toWireValue({\n                value: new TypeError(\"Unserializable return value\"),\n                [throwMarker]: 0,\n            });\n            ep.postMessage(Object.assign(Object.assign({}, wireValue), { id }), transferables);\n        });\n    });\n    if (ep.start) {\n        ep.start();\n    }\n}\nfunction isMessagePort(endpoint) {\n    return endpoint.constructor.name === \"MessagePort\";\n}\nfunction closeEndPoint(endpoint) {\n    if (isMessagePort(endpoint))\n        endpoint.close();\n}\nfunction wrap(ep, target) {\n    return createProxy(ep, [], target);\n}\nfunction throwIfProxyReleased(isReleased) {\n    if (isReleased) {\n        throw new Error(\"Proxy has been released and is not useable\");\n    }\n}\nfunction releaseEndpoint(ep) {\n    return requestResponseMessage(ep, {\n        type: \"RELEASE\" /* MessageType.RELEASE */,\n    }).then(() => {\n        closeEndPoint(ep);\n    });\n}\nconst proxyCounter = new WeakMap();\nconst proxyFinalizers = \"FinalizationRegistry\" in globalThis &&\n    new FinalizationRegistry((ep) => {\n        const newCount = (proxyCounter.get(ep) || 0) - 1;\n        proxyCounter.set(ep, newCount);\n        if (newCount === 0) {\n            releaseEndpoint(ep);\n        }\n    });\nfunction registerProxy(proxy, ep) {\n    const newCount = (proxyCounter.get(ep) || 0) + 1;\n    proxyCounter.set(ep, newCount);\n    if (proxyFinalizers) {\n        proxyFinalizers.register(proxy, ep, proxy);\n    }\n}\nfunction unregisterProxy(proxy) {\n    if (proxyFinalizers) {\n        proxyFinalizers.unregister(proxy);\n    }\n}\nfunction createProxy(ep, path = [], target = function () { }) {\n    let isProxyReleased = false;\n    const proxy = new Proxy(target, {\n        get(_target, prop) {\n            throwIfProxyReleased(isProxyReleased);\n            if (prop === releaseProxy) {\n                return () => {\n                    unregisterProxy(proxy);\n                    releaseEndpoint(ep);\n                    isProxyReleased = true;\n                };\n            }\n            if (prop === \"then\") {\n                if (path.length === 0) {\n                    return { then: () => proxy };\n                }\n                const r = requestResponseMessage(ep, {\n                    type: \"GET\" /* MessageType.GET */,\n                    path: path.map((p) => p.toString()),\n                }).then(fromWireValue);\n                return r.then.bind(r);\n            }\n            return createProxy(ep, [...path, prop]);\n        },\n        set(_target, prop, rawValue) {\n            throwIfProxyReleased(isProxyReleased);\n            // FIXME: ES6 Proxy Handler `set` methods are supposed to return a\n            // boolean. To show good will, we return true asynchronously ¯\\_(ツ)_/¯\n            const [value, transferables] = toWireValue(rawValue);\n            return requestResponseMessage(ep, {\n                type: \"SET\" /* MessageType.SET */,\n                path: [...path, prop].map((p) => p.toString()),\n                value,\n            }, transferables).then(fromWireValue);\n        },\n        apply(_target, _thisArg, rawArgumentList) {\n            throwIfProxyReleased(isProxyReleased);\n            const last = path[path.length - 1];\n            if (last === createEndpoint) {\n                return requestResponseMessage(ep, {\n                    type: \"ENDPOINT\" /* MessageType.ENDPOINT */,\n                }).then(fromWireValue);\n            }\n            // We just pretend that `bind()` didn’t happen.\n            if (last === \"bind\") {\n                return createProxy(ep, path.slice(0, -1));\n            }\n            const [argumentList, transferables] = processArguments(rawArgumentList);\n            return requestResponseMessage(ep, {\n                type: \"APPLY\" /* MessageType.APPLY */,\n                path: path.map((p) => p.toString()),\n                argumentList,\n            }, transferables).then(fromWireValue);\n        },\n        construct(_target, rawArgumentList) {\n            throwIfProxyReleased(isProxyReleased);\n            const [argumentList, transferables] = processArguments(rawArgumentList);\n            return requestResponseMessage(ep, {\n                type: \"CONSTRUCT\" /* MessageType.CONSTRUCT */,\n                path: path.map((p) => p.toString()),\n                argumentList,\n            }, transferables).then(fromWireValue);\n        },\n    });\n    registerProxy(proxy, ep);\n    return proxy;\n}\nfunction myFlat(arr) {\n    return Array.prototype.concat.apply([], arr);\n}\nfunction processArguments(argumentList) {\n    const processed = argumentList.map(toWireValue);\n    return [processed.map((v) => v[0]), myFlat(processed.map((v) => v[1]))];\n}\nconst transferCache = new WeakMap();\nfunction transfer(obj, transfers) {\n    transferCache.set(obj, transfers);\n    return obj;\n}\nfunction proxy(obj) {\n    return Object.assign(obj, { [proxyMarker]: true });\n}\nfunction windowEndpoint(w, context = globalThis, targetOrigin = \"*\") {\n    return {\n        postMessage: (msg, transferables) => w.postMessage(msg, targetOrigin, transferables),\n        addEventListener: context.addEventListener.bind(context),\n        removeEventListener: context.removeEventListener.bind(context),\n    };\n}\nfunction toWireValue(value) {\n    for (const [name, handler] of transferHandlers) {\n        if (handler.canHandle(value)) {\n            const [serializedValue, transferables] = handler.serialize(value);\n            return [\n                {\n                    type: \"HANDLER\" /* WireValueType.HANDLER */,\n                    name,\n                    value: serializedValue,\n                },\n                transferables,\n            ];\n        }\n    }\n    return [\n        {\n            type: \"RAW\" /* WireValueType.RAW */,\n            value,\n        },\n        transferCache.get(value) || [],\n    ];\n}\nfunction fromWireValue(value) {\n    switch (value.type) {\n        case \"HANDLER\" /* WireValueType.HANDLER */:\n            return transferHandlers.get(value.name).deserialize(value.value);\n        case \"RAW\" /* WireValueType.RAW */:\n            return value.value;\n    }\n}\nfunction requestResponseMessage(ep, msg, transfers) {\n    return new Promise((resolve) => {\n        const id = generateUUID();\n        ep.addEventListener(\"message\", function l(ev) {\n            if (!ev.data || !ev.data.id || ev.data.id !== id) {\n                return;\n            }\n            ep.removeEventListener(\"message\", l);\n            resolve(ev.data);\n        });\n        if (ep.start) {\n            ep.start();\n        }\n        ep.postMessage(Object.assign({ id }, msg), transfers);\n    });\n}\nfunction generateUUID() {\n    return new Array(4)\n        .fill(0)\n        .map(() => Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(16))\n        .join(\"-\");\n}\n\n\n;// CONCATENATED MODULE: ./source/standard-extensions.ts\nfunction error(template, ...substitutions) {\n    const message = String.raw(template, ...substitutions.map((x) => typeof x === \"string\" ? x : JSON.stringify(x)));\n    throw new Error(message);\n}\nfunction exhaustive(value) {\n    return error `unexpected value: ${value}`;\n}\nfunction id(x) {\n    return x;\n}\nfunction ignore(..._args) {\n    /* 引数を無視する関数 */\n}\nlet ignoreReporterCache;\nfunction createProgressReporter(progress, total) {\n    class MessagedProgressEvent extends ProgressEvent {\n        constructor(message, options) {\n            super(\"message\", options);\n            this.message = message;\n        }\n    }\n    if (progress === undefined) {\n        return (ignoreReporterCache ?? (ignoreReporterCache = {\n            next: ignore,\n            done: ignore,\n        }));\n    }\n    let loaded = 0;\n    return {\n        next(message) {\n            loaded = Math.max(loaded + 1, total);\n            progress(new MessagedProgressEvent(message, {\n                lengthComputable: true,\n                loaded,\n                total,\n            }));\n        },\n        done(message) {\n            progress(new MessagedProgressEvent(message, {\n                lengthComputable: true,\n                loaded: total,\n                total,\n            }));\n        },\n    };\n}\nclass AbortError extends Error {\n    constructor(message) {\n        super(message);\n        this.name = \"AbortError\";\n    }\n}\nfunction newAbortError(message = \"The operation was aborted.\") {\n    if (typeof DOMException === \"function\") {\n        return new DOMException(message, \"AbortError\");\n    }\n    else {\n        return new AbortError(message);\n    }\n}\nfunction throwIfAborted(signal) {\n    if (signal?.aborted) {\n        throw newAbortError();\n    }\n}\nfunction sleep(milliseconds, option) {\n    return new Promise((resolve, reject) => {\n        const signal = option?.signal;\n        if (signal?.aborted) {\n            reject(newAbortError());\n            return;\n        }\n        const onAbort = signal\n            ? () => {\n                clearTimeout(id);\n                reject(newAbortError());\n            }\n            : ignore;\n        const id = setTimeout(() => {\n            signal?.removeEventListener(\"abort\", onAbort);\n            resolve();\n        }, milliseconds);\n        signal?.addEventListener(\"abort\", onAbort);\n    });\n}\nfunction microYield() {\n    return Promise.resolve();\n}\nfunction cancelToReject(promise, onCancel = ignore) {\n    return promise.catch((e) => {\n        if (e instanceof Error && e.name === \"AbortError\") {\n            return onCancel();\n        }\n        throw e;\n    });\n}\nfunction createAsyncCancelScope(handleAsyncError) {\n    let lastCancel = new AbortController();\n    return (process) => {\n        // 前の操作をキャンセル\n        lastCancel.abort();\n        lastCancel = new AbortController();\n        handleAsyncError(\n        // キャンセル例外を無視する\n        cancelToReject(process(lastCancel.signal)));\n    };\n}\nfunction assertTrue() {\n    // 型レベルアサーション関数\n}\nfunction pipe(value, ...processes) {\n    let a = value;\n    for (const p of processes) {\n        switch (typeof p) {\n            case \"function\":\n                a = p(a);\n                break;\n            case \"string\":\n                a = a == null ? a : a[p];\n                break;\n            default: {\n                const [f, ...xs] = p;\n                a = f.call(null, a, ...xs);\n                break;\n            }\n        }\n    }\n    return a;\n}\nconst isArray = Array.isArray;\nfunction getOrCreate(map, key, createValue) {\n    if (map.has(key)) {\n        return map.get(key);\n    }\n    const value = createValue();\n    map.set(key, value);\n    return value;\n}\n\n;// CONCATENATED MODULE: ./source/submission-series.ts\n// spell-checker: ignore echarts\n\nconst privateTaggedSymbol = Symbol(\"privateTaggedSymbol\");\nlet tempDate = null;\nfunction getStartOfLocalMonth(time) {\n    const d = (tempDate ?? (tempDate = new Date()));\n    d.setTime(time);\n    d.setDate(1);\n    d.setHours(0, 0, 0, 0);\n    return d.getTime();\n}\nfunction parseAsLocalTicks(dayString) {\n    const [year, month, day] = dayString.split(\"-\");\n    const d = (tempDate ?? (tempDate = new Date()));\n    d.setTime(0);\n    d.setFullYear(Number(year), Number(month) - 1, Number(day));\n    d.setHours(0, 0, 0, 0);\n    return d.getTime();\n}\nfunction newMap() {\n    return new Map();\n}\nfunction calculateAcceptedRatios(periodToStatusToNominations, cumulative) {\n    // 一定期間毎の承認率を算出\n    // 承認率 = 承認数 / (承認数 + 否認数 + 重複数 + 取下数)\n    let acceptedCount = 0;\n    let notAcceptedCount = 0;\n    const data = [];\n    for (const [period, statuses] of periodToStatusToNominations) {\n        const acceptedPerPeriod = statuses.get(\"ACCEPTED\")?.length ?? 0;\n        const notAcceptedPerPeriod = (statuses.get(\"REJECTED\")?.length ?? 0) +\n            (statuses.get(\"DUPLICATE\")?.length ?? 0) +\n            (statuses.get(\"WITHDRAWN\")?.length ?? 0);\n        acceptedCount = cumulative\n            ? acceptedCount + acceptedPerPeriod\n            : acceptedPerPeriod;\n        notAcceptedCount = cumulative\n            ? notAcceptedCount + notAcceptedPerPeriod\n            : notAcceptedPerPeriod;\n        if (0 === acceptedCount + notAcceptedCount)\n            continue;\n        data.push([period, acceptedCount / (acceptedCount + notAcceptedCount)]);\n    }\n    return data;\n}\nconst statusToColor = {\n    ACCEPTED: \"#15803d\", // 緑 ( 公式 )\n    REJECTED: \"#dc2626\", // 赤 ( 公式 )\n    DUPLICATE: \"#dc9c26\", // オレンジ\n    HELD: \"#211580\", // 青\n    WITHDRAWN: \"#c026dc\", // 紫\n};\nconst lineSeries = {\n    type: \"line\",\n    symbol: \"none\",\n    step: \"end\",\n};\nconst barSeries = {\n    type: \"bar\",\n};\nasync function calculateSubmissionSeries(nominations, names) {\n    // 日時でソートする\n    const nominationWithTicks = nominations\n        .map((n) => ({\n        ...n,\n        dayTicks: parseAsLocalTicks(n.day),\n    }))\n        .sort((a, b) => a.dayTicks - b.dayTicks);\n    // インデックスを作成\n    const dayToStatusToNominations = new Map();\n    const statusToDayToNominations = new Map();\n    const dayToNominations = new Map();\n    const statusToMonthToNominations = new Map();\n    const monthToStatusToNominations = new Map();\n    for (const n of nominationWithTicks) {\n        const month = getStartOfLocalMonth(n.dayTicks);\n        getOrCreate(getOrCreate(dayToStatusToNominations, n.dayTicks, newMap), n.status, Array).push(n);\n        getOrCreate(getOrCreate(statusToDayToNominations, n.status, newMap), n.dayTicks, Array).push(n);\n        getOrCreate(dayToNominations, n.dayTicks, Array).push(n);\n        getOrCreate(getOrCreate(statusToMonthToNominations, n.status, newMap), month, Array).push(n);\n        getOrCreate(getOrCreate(monthToStatusToNominations, month, newMap), n.status, Array).push(n);\n    }\n    const result = [];\n    // 日毎の累計状態数\n    for (const [status, days] of statusToDayToNominations) {\n        const data = [];\n        let cumulativeCount = 0;\n        for (const [day, nominations] of days) {\n            data.push([day, (cumulativeCount += nominations.length)]);\n        }\n        result.push({\n            ...lineSeries,\n            name: `${names.statuses[status] || status}`,\n            data,\n            itemStyle: {\n                color: statusToColor[status],\n            },\n        });\n    }\n    // 月毎状態数\n    for (const [status, months] of statusToMonthToNominations) {\n        const data = [];\n        for (const [month, nominations] of months) {\n            data.push([month, nominations.length]);\n        }\n        result.push({\n            ...barSeries,\n            name: `${names.statuses[status] || status}/${names.statusCountPerMonth}`,\n            data,\n            itemStyle: {\n                color: statusToColor[status],\n            },\n        });\n    }\n    // 日毎の累計承認率\n    result.push({\n        ...lineSeries,\n        name: names.cumulativeAcceptedRatioPerDay,\n        data: calculateAcceptedRatios(dayToStatusToNominations, true),\n        itemStyle: { color: statusToColor[\"ACCEPTED\"] },\n    });\n    // 月毎の承認率\n    result.push({\n        ...barSeries,\n        name: names.acceptedRatioPerMonth,\n        data: calculateAcceptedRatios(monthToStatusToNominations, false),\n    });\n    return result;\n}\n\n;// CONCATENATED MODULE: ./source/submissions.ts\nfunction parseNominations(response) {\n    const json = JSON.parse(response);\n    if (json == null)\n        throw new Error(\"Invalid response from Wayfarer\");\n    /** TODO: zod などで実行時チェックする */\n    const data = json;\n    const nominations = data.result.submissions.filter((s) => s.type === \"NOMINATION\");\n    return nominations;\n}\n\n;// CONCATENATED MODULE: ./source/background-module.ts\n\n\nasync function calculateSubmissionCharts(data, names) {\n    const nominations = parseNominations(data);\n    return await calculateSubmissionSeries(nominations, names);\n}\n\n;// CONCATENATED MODULE: ./node_modules/ts-loader/index.js!./source/background.worker.ts\n\n\nexpose(background_module_namespaceObject);\n\n/******/ })()\n;\n//# sourceMappingURL=wayfarer-statistics-charts.user.worker.js.map", "Worker", undefined, undefined);
+}
+
+;// CONCATENATED MODULE: ./source/submissions.ts
+function parseNominations(response) {
+    const json = JSON.parse(response);
+    if (json == null)
+        throw new Error("Invalid response from Wayfarer");
+    /** TODO: zod などで実行時チェックする */
+    const data = json;
+    const nominations = data.result.submissions.filter((s) => s.type === "NOMINATION");
+    return nominations;
+}
+
+;// CONCATENATED MODULE: ./source/chart-options.ts
+
+
+
+
+function createBaseEChartOption() {
+    return {
+        textStyle: {
+            fontFamily: "'Yu Gothic UI', 'Meiryo UI', sans-serif",
+        },
+        toolbox: {
+            feature: {
+                dataZoom: {
+                    yAxisIndex: "none",
+                },
+                restore: {},
+                saveAsImage: {},
+            },
+        },
+    };
+}
+async function loadBackgroundModule() {
+    const comlink = await Promise.resolve(/* import() */).then(__webpack_require__.bind(__webpack_require__, 144));
+    return comlink.wrap(new Worker_fn());
+}
+let backgroundModule;
+function importBackgroundModule() {
+    return (backgroundModule ?? (backgroundModule = loadBackgroundModule()));
+}
+async function* createCurrentChartOption(response, names) {
+    const submissions = parseNominations(response);
+    const statusToCount = new Map();
+    for (const { status } of submissions) {
+        const count = statusToCount.get(status) ?? 0;
+        statusToCount.set(status, count + 1);
+    }
+    const statusAndCounts = [...statusToCount.entries()]
+        .sort((a, b) => a[1] - b[1])
+        .reverse();
+    const series = {
+        type: "pie",
+        radius: ["40%", "70%"],
+        center: ["50%", "70%"],
+        startAngle: 180,
+        //@ts-expect-error 追加のオプション
+        endAngle: 360,
+        label: {
+            // align: "edge",
+            formatter: "{name|{b}}\n{count|{c}}",
+            rich: {
+                count: {
+                    fontSize: 10,
+                    color: "#999",
+                },
+            },
+        },
+        itemStyle: {
+            borderRadius: 10,
+            borderColor: "#fff",
+        },
+        data: statusAndCounts.map(([status, value]) => ({
+            name: names.statuses[status] || status,
+            value,
+        })),
+    };
+    yield {
+        ...createBaseEChartOption(),
+        legend: {
+            left: "center",
+        },
+        series: [series],
+    };
+}
+async function* createHistoryChartOption(response, names) {
+    const background = await importBackgroundModule();
+    const series = await background.calculateSubmissionCharts(response, names);
+    yield {
+        ...createBaseEChartOption(),
+        xAxis: {
+            type: "time",
+            axisLabel: {
+                formatter: (value) => {
+                    const date = new Date(value);
+                    return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+                },
+            },
+        },
+        yAxis: {
+            type: "value",
+            name: "イベント数",
+        },
+        dataZoom: [{}],
+        series,
+        tooltip: {
+            trigger: "axis",
+            formatter: (ps) => {
+                const params = Array.isArray(ps) ? ps : [ps];
+                let result = `${new Date((params[0]?.value)[0]).toLocaleString()}<br/>`;
+                for (const param of params) {
+                    result += `${param.seriesName}: ${param.value[1]}<br/>`;
+                }
+                return result;
+            },
+        },
+        legend: {
+            data: series.map((series) => series.name),
+            selected: {},
+        },
+    };
+}
+function newMap() {
+    return new Map();
+}
+async function* createCitiesChartOption(response, _names) {
+    const nominations = parseNominations(response);
+    const stateToCityToNominations = new Map();
+    for (const nomination of nominations) {
+        const { state, city } = nomination;
+        const cityToNominations = getOrCreate(stateToCityToNominations, state, newMap);
+        const nominations = getOrCreate(cityToNominations, city, Array);
+        nominations.push(nomination);
+    }
+    const data = [];
+    for (const [state, cityToNominations] of stateToCityToNominations) {
+        let nominationCountAtState = 0;
+        const childrenAtState = [];
+        for (const [city, nominations] of cityToNominations) {
+            const nominationCountAtCity = nominations.length;
+            nominationCountAtState += nominationCountAtCity;
+            childrenAtState.push({
+                value: nominationCountAtCity,
+                name: city,
+            });
+        }
+        {
+            data.push({
+                value: nominationCountAtState,
+                name: state,
+                children: childrenAtState,
+            });
+        }
+        const series = {
+            ...createBaseEChartOption(),
+            type: "treemap",
+            visibleMin: 300,
+            label: {
+                show: true,
+                formatter: "{b}",
+            },
+            itemStyle: {
+                borderColor: "#fff",
+            },
+            levels: [
+                {
+                    itemStyle: { borderWidth: 0, gapWidth: 5 },
+                },
+                {
+                    itemStyle: { gapWidth: 1 },
+                },
+                {
+                    //@ts-expect-error ライブラリの型付け
+                    colorSaturation: [0.35, 0.5],
+                    itemStyle: {
+                        gapWidth: 1,
+                        borderColorSaturation: "0.6",
+                    },
+                },
+            ],
+            data,
+        };
+        yield {
+            tooltip: {
+                formatter(info) {
+                    if (Array.isArray(info))
+                        return standard_extensions_error `${info} should be an array`;
+                    const value = info.value;
+                    const treePathInfo = "treePathInfo" in info &&
+                        Array.isArray(info.treePathInfo)
+                        ? info.treePathInfo
+                        : [];
+                    const treePath = treePathInfo.map((path) => {
+                        if (path != null &&
+                            typeof path === "object" &&
+                            "name" in path &&
+                            typeof path.name === "string") {
+                            return path.name;
+                        }
+                        return standard_extensions_error `path is not a string or an array`;
+                    });
+                    return [
+                        `<div class='tooltip-title'>`,
+                        escapeHtml(treePath.join("/")),
+                        `</div>`,
+                        value == null ? "" : value,
+                    ].join("");
+                },
+            },
+            series: [series],
+        };
+    }
 }
 
 ;// CONCATENATED MODULE: ./source/wayfarer-statistics-charts.tsx
 
-// spell-checker: ignore echarts comlink
+// spell-checker: ignore echarts
 
 
 
 
+function handleAsyncError(e) {
+    console.error(e);
+}
 function makeDraggable(element, handleElement) {
     let isDragging = false;
     let offsetX = 0, offsetY = 0;
@@ -440,61 +666,13 @@ function interceptApiToValues() {
         };
     });
 }
-function createEChartOptionsFromSubmissionSeries(series) {
-    return {
-        textStyle: {
-            fontFamily: "'Yu Gothic UI', 'Meiryo UI', sans-serif",
-        },
-        toolbox: {
-            feature: {
-                dataZoom: {
-                    yAxisIndex: "none",
-                },
-                restore: {},
-                saveAsImage: {},
-            },
-        },
-        xAxis: {
-            type: "time",
-            axisLabel: {
-                formatter: (value) => {
-                    const date = new Date(value);
-                    return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
-                },
-            },
-        },
-        yAxis: {
-            type: "value",
-            name: "イベント数",
-        },
-        dataZoom: [{}],
-        series,
-        tooltip: {
-            trigger: "axis",
-            formatter: (ps) => {
-                const params = Array.isArray(ps) ? ps : [ps];
-                let result = `${new Date((params[0]?.value)[0]).toLocaleString()}<br/>`;
-                for (const param of params) {
-                    result += `${param.seriesName}: ${param.value[1]}<br/>`;
-                }
-                return result;
-            },
-        },
-        legend: {
-            data: series.map((series) => series.name),
-            selected: {},
-        },
-    };
-}
-async function displayCharts(series) {
-    const option = createEChartOptionsFromSubmissionSeries(series);
+async function createResizableChartContainer() {
+    const containerElement = (jsx("div", { class: styles_module["chart-container"] }));
     const echarts = await Promise.resolve(/* import() */).then(__webpack_require__.bind(__webpack_require__, 229));
-    const chartContainerElement = (jsx("div", { class: styles_module["chart-container"] }));
-    const chart = echarts.init(chartContainerElement, undefined, {
+    const chart = echarts.init(containerElement, undefined, {
         width: 300,
         height: 200,
     });
-    chart.setOption(option);
     new ResizeObserver((entries) => {
         for (const { contentRect } of entries) {
             chart.resize({
@@ -502,43 +680,76 @@ async function displayCharts(series) {
                 height: contentRect.height,
             });
         }
-    }).observe(chartContainerElement);
-    await displayDialog(chartContainerElement, ["OK"]);
+    }).observe(containerElement);
+    return { containerElement, chart };
 }
-let backgroundModule;
-async function importBackgroundModule() {
-    if (backgroundModule) {
-        return backgroundModule;
+async function setChartOptionsAsync(containerElement, dynamicOptions) {
+    const { containerElement: element, chart } = await createResizableChartContainer();
+    containerElement.appendChild(element);
+    for await (const option of dynamicOptions) {
+        chart.setOption(option);
     }
-    const comlink = await Promise.resolve(/* import() */).then(__webpack_require__.bind(__webpack_require__, 144));
-    backgroundModule = comlink.wrap(new Worker_fn());
-    return backgroundModule;
+}
+async function displayCharts(statistics) {
+    const chartContainerElements = statistics.map((dynamicOptions) => {
+        const container = jsx("div", {});
+        setChartOptionsAsync(container, dynamicOptions).catch((e) => {
+            container.append(jsx("div", { children: e instanceof Error ? e.message : String(e) }));
+            handleAsyncError(e);
+        });
+        return container;
+    });
+    const statisticsContainerElement = jsx("div", { children: chartContainerElements });
+    await displayDialog(statisticsContainerElement, ["OK"]);
+}
+function getDefaultNames() {
+    return {
+        cumulativeAcceptedRatioPerDay: "承認率",
+        statusCountPerMonth: "月",
+        acceptedRatioPerMonth: "承認率/月",
+        cumulativeTourDistance: "推定移動距離",
+        statuses: {
+            ACCEPTED: "承認",
+            DUPLICATE: "重複",
+            HELD: "保留",
+            NOMINATED: "審査中",
+            REJECTED: "否認",
+            VOTING: "投票中",
+            WITHDRAWN: "取下済",
+        },
+    };
+}
+const statisticsNamesKey = "wayfarer-statistics-names-0f7497e6-35bc-4810-88e4-1d2510b4ae08";
+function loadNames() {
+    const names = localStorage.getItem(statisticsNamesKey);
+    if (names == null) {
+        return getDefaultNames();
+    }
+    try {
+        return {
+            ...getDefaultNames(),
+            ...JSON.parse(names),
+            // TODO: statuses のマージ
+        };
+    }
+    catch (e) {
+        return getDefaultNames();
+    }
 }
 async function asyncMain() {
     addStyle(cssText);
     for await (const value of await interceptApiToValues()) {
-        const r = value.currentTarget.response;
-        console.debug("manage response: ", r);
-        if (typeof r !== "string")
+        const response = value.currentTarget
+            .response;
+        console.debug("manage response: ", response);
+        if (typeof response !== "string")
             return standard_extensions_error `response must be a string`;
-        const names = {
-            cumulativeAcceptedRatioPerDay: "承認率",
-            statusCountPerMonth: "月",
-            acceptedRatioPerMonth: "承認率/月",
-            cumulativeTourDistance: "推定移動距離",
-            statuses: {
-                ACCEPTED: "承認",
-                DUPLICATE: "重複",
-                HELD: "保留",
-                NOMINATED: "審査中",
-                REJECTED: "否認",
-                VOTING: "投票中",
-                WITHDRAWN: "取下済",
-            },
-        };
-        const backgroundModule = await importBackgroundModule();
-        const submissionSeries = await backgroundModule.calculateSubmissionCharts(r, names);
-        await displayCharts(submissionSeries);
+        const names = loadNames();
+        await displayCharts([
+            createCurrentChartOption(response, names),
+            createCitiesChartOption(response, names),
+            createHistoryChartOption(response, names),
+        ]);
     }
 }
 
@@ -549,7 +760,7 @@ async function asyncMain() {
 /***/ ((module, __unused_webpack___webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-/* harmony import */ var _wayfarer_statistics_charts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(589);
+/* harmony import */ var _wayfarer_statistics_charts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(999);
 await _wayfarer_statistics_charts__WEBPACK_IMPORTED_MODULE_0__/* .asyncMain */ .c();
 
 __webpack_async_result__();
