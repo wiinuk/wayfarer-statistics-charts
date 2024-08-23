@@ -1,11 +1,7 @@
 // spell-checker: ignore echarts
 import { addStyle } from "./document-extensions";
 import classNames, { cssText } from "./styles.module.css";
-import type {
-    SubmissionSeries,
-    SubmissionChartsDisplayNames,
-    Ticks,
-} from "./submission-series";
+import type { SubmissionChartsDisplayNames } from "./submission-series";
 import { error } from "./standard-extensions";
 import type { EChartOption } from "echarts";
 import {
