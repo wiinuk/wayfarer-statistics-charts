@@ -1,6 +1,6 @@
 // spell-checker: ignore echarts
 import { addStyle } from "./document-extensions";
-import classNames, { cssText } from "./styles.module.css";
+import classNames, { cssText, variables } from "./styles.module.css";
 import type { SubmissionChartsDisplayNames } from "./submission-series";
 import { error } from "./standard-extensions";
 import type { EChartOption } from "echarts";
@@ -13,7 +13,13 @@ import {
 export function handleAsyncError(e: unknown) {
     console.error(e);
 }
-function makeDraggable(element: HTMLElement, handleElement: HTMLElement) {
+function makeDraggable(
+    element: HTMLElement,
+    handleElement: HTMLElement,
+    options?: {
+        propertyNames?: { left: string; top: string };
+    }
+) {
     let isDragging = false;
     let offsetX = 0,
         offsetY = 0;
@@ -28,8 +34,14 @@ function makeDraggable(element: HTMLElement, handleElement: HTMLElement) {
 
     document.addEventListener("mousemove", (e) => {
         if (isDragging) {
-            element.style.left = `${e.clientX - offsetX}px`;
-            element.style.top = `${e.clientY - offsetY}px`;
+            if (options?.propertyNames) {
+                const { left, top } = options.propertyNames;
+                element.style.setProperty(left, `${e.clientX - offsetX}px`);
+                element.style.setProperty(top, `${e.clientY - offsetY}px`);
+            } else {
+                element.style.left = `${e.clientX - offsetX}px`;
+                element.style.top = `${e.clientY - offsetY}px`;
+            }
         }
     });
 
@@ -69,7 +81,16 @@ function displayDialog<TChoice extends string>(
             </div>
         );
 
-        makeDraggable(previewDiv, titleDiv);
+        titleDiv.addEventListener("dblclick", () =>
+            previewDiv.classList.toggle(classNames["maximized"])
+        );
+
+        makeDraggable(previewDiv, titleDiv, {
+            propertyNames: {
+                left: variables["--drag-left"],
+                top: variables["--drag-top"],
+            },
+        });
 
         document.body.appendChild(previewDiv);
     });
