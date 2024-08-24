@@ -5,12 +5,11 @@
 // @downloadURL  https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @updateURL    https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @homepageURL  https://github.com/wiinuk/wayfarer-statistics-charts
-// @version      0.2.0
+// @version      0.2.1
 // @description  Visualize statistics of Niantic Wayfarer submissions.
 // @author       Wiinuk
 // @match        https://wayfarer.nianticlabs.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=nianticlabs.com
-// @grant        GM_info
 // ==/UserScript==
 
 /******/ (() => { // webpackBootstrap
@@ -343,14 +342,18 @@ function sleepUntilNextAnimationFrame(options) {
 }
 
 ;// CONCATENATED MODULE: ./source/styles.module.css
-const cssText = ".display-preview-7f5adab7c238c660ea9f2a4e8f190fbdf94a04f8 {\r\n    position: fixed;\r\n    bottom: 0;\r\n    right: 0;\r\n    width: 400px;\r\n    height: 300px;\r\n\r\n    background: repeating-linear-gradient(45deg,\r\n            #cccccc80,\r\n            #cccccc80 10px,\r\n            #ffffff80 10px,\r\n            #ffffff80 20px);\r\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);\r\n    border-radius: 1rem 1rem 0 0;\r\n    z-index: 10000;\r\n\r\n    overflow: auto;\r\n    resize: both;\r\n    display: flex;\r\n    flex-direction: column;\r\n}\r\n.display-preview-title-c71c9bdc324759695a97b03b6436a67a15f68384 {\r\n    width: 100%;\r\n    min-height: 2em;\r\n    text-align: center;\r\n    align-content: center;\r\n    user-select: none;\r\n\r\n    padding: 0.3em;\r\n    background-color: aliceblue;\r\n    border-radius: 1rem 1rem 0 0;\r\n}\r\n.display-preview-inner-container-0f808581fb3cf8c99451385de4964219c3c31b39 {\r\n    flex-grow: 1;\r\n    overflow: auto;\r\n}\r\n.display-preview-button-5b5c854b53ec01ab27ecc41b2f96d554c7e851dc {\r\n    background: whitesmoke;\r\n    border-radius: 1rem;\r\n    padding: 0.5em 1em;\r\n    margin: 0.3em 0 0.3em 0.3em\r\n}\r\n\r\n.chart-container-edcb73241ae79541b08978715bc45010de609be4 {\r\n    resize: vertical;\r\n    overflow: auto;\r\n\r\n    background: white;\r\n    width: 100%;\r\n    height: 300px;\r\n}\r\n";
-const variables = {};
+const cssText = ".display-preview-e902778cd317c5e3f3164587b5c501ef3594f1b4 {\r\n    position: fixed;\r\n    top: var(--drag-top-55daa1200ef9f5017e0db456624d226f9e5a1d3e, calc(100% - 300px));\r\n    left: var(--drag-left-2763393c4305f245944784555a1314cbf7ca062a, calc(100% - 400px));\r\n    height: 300px;\r\n    width: 400px;\r\n\r\n    background: repeating-linear-gradient(45deg,\r\n            #cccccc80,\r\n            #cccccc80 10px,\r\n            #ffffff80 10px,\r\n            #ffffff80 20px);\r\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);\r\n    border-radius: 1rem 1rem 0 0;\r\n    z-index: 10000;\r\n\r\n    overflow: auto;\r\n    resize: both;\r\n    display: flex;\r\n    flex-direction: column;\r\n}\r\n.maximized-0aacca35b55f11b18bc963fa58672a19352b3a34 {\r\n    /* resize: both によってブラウザによって設定されたインラインスタイルを上書きするため */\r\n    width: 100% !important;\r\n    height: 100% !important;\r\n    left: 0;\r\n    top: 0;\r\n    resize: none;\r\n}\r\n\r\n.display-preview-title-e6606ec1808ce1e6a2abe2acc9845151866c8de2 {\r\n    width: 100%;\r\n    min-height: 2em;\r\n    text-align: center;\r\n    align-content: center;\r\n    user-select: none;\r\n\r\n    padding: 0.3em;\r\n    background-color: aliceblue;\r\n    border-radius: 1rem 1rem 0 0;\r\n}\r\n.display-preview-inner-container-eb9c888ffe2cd2956bfd3d415a6e0e083971c11e {\r\n    flex-grow: 1;\r\n    overflow: auto;\r\n}\r\n.display-preview-button-b34538f3d01eefbfb538b99b78bc2bbc02731e8a {\r\n    background: whitesmoke;\r\n    border-radius: 1rem;\r\n    padding: 0.5em 1em;\r\n    margin: 0.3em 0 0.3em 0.3em\r\n}\r\n\r\n.chart-container-cdefc2f72ceaac2d40d0a1c5fd8b4bebb5db5d0d {\r\n    resize: vertical;\r\n    overflow: auto;\r\n\r\n    background: white;\r\n    width: 100%;\r\n    height: auto;\r\n    aspect-ratio: 16 / 9;\r\n}\r\n";
+const variables = {
+    "--drag-top": "--drag-top-55daa1200ef9f5017e0db456624d226f9e5a1d3e",
+    "--drag-left": "--drag-left-2763393c4305f245944784555a1314cbf7ca062a",
+};
 /* harmony default export */ const styles_module = ({
-    "display-preview": "display-preview-7f5adab7c238c660ea9f2a4e8f190fbdf94a04f8",
-    "display-preview-title": "display-preview-title-c71c9bdc324759695a97b03b6436a67a15f68384",
-    "display-preview-inner-container": "display-preview-inner-container-0f808581fb3cf8c99451385de4964219c3c31b39",
-    "display-preview-button": "display-preview-button-5b5c854b53ec01ab27ecc41b2f96d554c7e851dc",
-    "chart-container": "chart-container-edcb73241ae79541b08978715bc45010de609be4",
+    "display-preview": "display-preview-e902778cd317c5e3f3164587b5c501ef3594f1b4",
+    maximized: "maximized-0aacca35b55f11b18bc963fa58672a19352b3a34",
+    "display-preview-title": "display-preview-title-e6606ec1808ce1e6a2abe2acc9845151866c8de2",
+    "display-preview-inner-container": "display-preview-inner-container-eb9c888ffe2cd2956bfd3d415a6e0e083971c11e",
+    "display-preview-button": "display-preview-button-b34538f3d01eefbfb538b99b78bc2bbc02731e8a",
+    "chart-container": "chart-container-cdefc2f72ceaac2d40d0a1c5fd8b4bebb5db5d0d",
 });
 
 // EXTERNAL MODULE: ./node_modules/worker-loader/dist/runtime/inline.js
@@ -464,7 +467,7 @@ async function* createHistoryChartOption(response, names) {
         },
         yAxis: {
             type: "value",
-            name: "イベント数",
+            name: names.historyChartYAxisName,
         },
         dataZoom: [{}],
         series,
@@ -587,7 +590,7 @@ async function* createCitiesChartOption(response, _names) {
 function handleAsyncError(e) {
     console.error(e);
 }
-function makeDraggable(element, handleElement) {
+function makeDraggable(element, handleElement, options) {
     let isDragging = false;
     let offsetX = 0, offsetY = 0;
     element.addEventListener("mousedown", (e) => {
@@ -599,8 +602,15 @@ function makeDraggable(element, handleElement) {
     });
     document.addEventListener("mousemove", (e) => {
         if (isDragging) {
-            element.style.left = `${e.clientX - offsetX}px`;
-            element.style.top = `${e.clientY - offsetY}px`;
+            if (options?.propertyNames) {
+                const { left, top } = options.propertyNames;
+                element.style.setProperty(left, `${e.clientX - offsetX}px`);
+                element.style.setProperty(top, `${e.clientY - offsetY}px`);
+            }
+            else {
+                element.style.left = `${e.clientX - offsetX}px`;
+                element.style.top = `${e.clientY - offsetY}px`;
+            }
         }
     });
     document.addEventListener("mouseup", () => {
@@ -619,7 +629,13 @@ function displayDialog(innerElement, choices, title = "") {
         });
         const titleDiv = (jsx("div", { class: styles_module["display-preview-title"], children: title }));
         const previewDiv = (jsxs("div", { class: styles_module["display-preview"], children: [titleDiv, jsx("div", { class: styles_module["display-preview-inner-container"], children: innerElement }), jsx("div", { children: buttons })] }));
-        makeDraggable(previewDiv, titleDiv);
+        titleDiv.addEventListener("dblclick", () => previewDiv.classList.toggle(styles_module["maximized"]));
+        makeDraggable(previewDiv, titleDiv, {
+            propertyNames: {
+                left: variables["--drag-left"],
+                top: variables["--drag-top"],
+            },
+        });
         document.body.appendChild(previewDiv);
     });
 }
@@ -704,6 +720,7 @@ async function displayCharts(statistics) {
 }
 function getDefaultNames() {
     return {
+        historyChartYAxisName: "件数",
         cumulativeAcceptedRatioPerDay: "承認率",
         statusCountPerMonth: "月",
         acceptedRatioPerMonth: "承認率/月",
@@ -721,20 +738,26 @@ function getDefaultNames() {
 }
 const statisticsNamesKey = "wayfarer-statistics-names-0f7497e6-35bc-4810-88e4-1d2510b4ae08";
 function loadNames() {
-    const names = localStorage.getItem(statisticsNamesKey);
-    if (names == null) {
-        return getDefaultNames();
+    const baseNames = getDefaultNames();
+    let extendedNames;
+    {
+        const namesJson = localStorage.getItem(statisticsNamesKey);
+        if (namesJson != null) {
+            try {
+                extendedNames = JSON.parse(namesJson);
+            }
+            catch {
+                // ignore
+            }
+        }
     }
-    try {
-        return {
-            ...getDefaultNames(),
-            ...JSON.parse(names),
-            // TODO: statuses のマージ
-        };
-    }
-    catch (e) {
-        return getDefaultNames();
-    }
+    if (extendedNames == null)
+        return baseNames;
+    return {
+        ...baseNames,
+        ...extendedNames,
+        // TODO: DeepMerge
+    };
 }
 async function asyncMain() {
     addStyle(cssText);
