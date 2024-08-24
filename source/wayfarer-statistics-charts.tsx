@@ -221,6 +221,7 @@ async function displayCharts(
 
 function getDefaultNames(): SubmissionChartsDisplayNames {
     return {
+        historyChartYAxisName: "件数",
         cumulativeAcceptedRatioPerDay: "承認率",
         statusCountPerMonth: "月",
         acceptedRatioPerMonth: "承認率/月",
@@ -239,19 +240,25 @@ function getDefaultNames(): SubmissionChartsDisplayNames {
 const statisticsNamesKey =
     "wayfarer-statistics-names-0f7497e6-35bc-4810-88e4-1d2510b4ae08";
 function loadNames(): SubmissionChartsDisplayNames {
-    const names = localStorage.getItem(statisticsNamesKey);
-    if (names == null) {
-        return getDefaultNames();
+    const baseNames = getDefaultNames();
+
+    let extendedNames: Partial<typeof baseNames> | undefined;
+    {
+        const namesJson = localStorage.getItem(statisticsNamesKey);
+        if (namesJson != null) {
+            try {
+                extendedNames = JSON.parse(namesJson);
+            } catch {
+                // ignore
+            }
+        }
     }
-    try {
-        return {
-            ...getDefaultNames(),
-            ...JSON.parse(names),
-            // TODO: statuses のマージ
-        };
-    } catch (e) {
-        return getDefaultNames();
-    }
+    if (extendedNames == null) return baseNames;
+    return {
+        ...baseNames,
+        ...extendedNames,
+        // TODO: DeepMerge
+    };
 }
 export async function asyncMain() {
     addStyle(cssText);

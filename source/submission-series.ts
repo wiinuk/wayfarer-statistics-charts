@@ -38,6 +38,7 @@ function newMap<K, V>(): Map<K, V> {
     return new Map();
 }
 export interface SubmissionChartsDisplayNames {
+    readonly historyChartYAxisName: string;
     readonly cumulativeTourDistance: string;
     readonly acceptedRatioPerMonth: string;
     /** 累計承認率/日 */

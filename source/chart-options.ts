@@ -112,7 +112,7 @@ export async function* createHistoryChartOption(
         },
         yAxis: {
             type: "value",
-            name: "イベント数",
+            name: names.historyChartYAxisName,
         },
         dataZoom: [{}],
         series,
