@@ -1,5 +1,9 @@
 # wayfarer-statistics-charts
 
+![累計件数のグラフ](example/image/chart-cumulative-number.png)
+![月ごと件数のグラフ](example/image/chart-monthly-number.png)
+![承認率のグラフ](example/image/chart-approval-rate.png)
+
 ## 使い方
 
 [インストール](../../raw/main/wayfarer-statistics-charts.user.js)
