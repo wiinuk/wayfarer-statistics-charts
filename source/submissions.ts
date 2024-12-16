@@ -15,7 +15,7 @@ type RejectReason = {
     reason: RejectReasonKind;
 };
 
-export type SubmissionStatus =
+export type KnownSubmissionStatus =
     | "ACCEPTED"
     | "REJECTED"
     | "DUPLICATE"
@@ -40,7 +40,7 @@ interface SubmissionBase {
     imageUrl: string;
     nextUpgrade: boolean;
     upgraded: boolean;
-    status: SubmissionStatus;
+    status: KnownSubmissionStatus;
     isMutable: boolean;
     isNianticControlled: boolean;
     statement: string;

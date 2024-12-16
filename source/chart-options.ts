@@ -5,7 +5,7 @@ import BackgroundWorker from "worker-loader?inline=no-fallback!./background.work
 import {
     parseNominations,
     type NominationSubmission,
-    type SubmissionStatus,
+    type KnownSubmissionStatus,
 } from "./submissions";
 import { error, getOrCreate } from "./standard-extensions";
 import { escapeHtml } from "./document-extensions";
@@ -47,7 +47,7 @@ export async function* createCurrentChartOption(
     names: SubmissionChartsDisplayNames
 ) {
     const submissions = parseNominations(response);
-    const statusToCount = new Map<SubmissionStatus, number>();
+    const statusToCount = new Map<KnownSubmissionStatus, number>();
     for (const { status } of submissions) {
         const count = statusToCount.get(status) ?? 0;
         statusToCount.set(status, count + 1);

@@ -3,7 +3,7 @@ import { getOrCreate } from "./standard-extensions";
 import type {
     Day,
     NominationSubmission,
-    SubmissionStatus,
+    KnownSubmissionStatus,
 } from "./submissions";
 
 const privateTaggedSymbol = Symbol("privateTaggedSymbol");
@@ -45,12 +45,12 @@ export interface SubmissionChartsDisplayNames {
     readonly cumulativeAcceptedRatioPerDay: string;
     /** {状態}数/月 */
     readonly statusCountPerMonth: string;
-    readonly statuses: Readonly<Record<SubmissionStatus, string>>;
+    readonly statuses: Readonly<Record<KnownSubmissionStatus, string>>;
 }
 function calculateAcceptedRatios(
     periodToStatusToNominations: ReadonlyMap<
         Ticks,
-        ReadonlyMap<SubmissionStatus, readonly NominationSubmission[]>
+        ReadonlyMap<KnownSubmissionStatus, readonly NominationSubmission[]>
     >,
     cumulative: boolean
 ) {
@@ -78,14 +78,15 @@ function calculateAcceptedRatios(
     }
     return data;
 }
-const statusToColor: Readonly<Partial<Record<SubmissionStatus, string>>> = {
-    ACCEPTED: "#15803d", // 緑 ( 公式 )
-    REJECTED: "#dc2626", // 赤 ( 公式 )
-    DUPLICATE: "#dc9c26", // オレンジ
-    HELD: "#211580", // 青
-    WITHDRAWN: "#c026dc", // 紫
-    NIANTIC_REVIEW: "#bbb", // 黒
-};
+const statusToColor: Readonly<Partial<Record<KnownSubmissionStatus, string>>> =
+    {
+        ACCEPTED: "#15803d", // 緑 ( 公式 )
+        REJECTED: "#dc2626", // 赤 ( 公式 )
+        DUPLICATE: "#dc9c26", // オレンジ
+        HELD: "#211580", // 青
+        WITHDRAWN: "#c026dc", // 紫
+        NIANTIC_REVIEW: "#bbb", // 黒
+    };
 const lineSeries: echarts.EChartOption.SeriesLine = {
     type: "line",
     symbol: "none",
@@ -109,20 +110,20 @@ export async function calculateSubmissionSeries(
     // インデックスを作成
     const dayToStatusToNominations = new Map<
         DayTicks,
-        Map<SubmissionStatus, NominationSubmission[]>
+        Map<KnownSubmissionStatus, NominationSubmission[]>
     >();
     const statusToDayToNominations = new Map<
-        SubmissionStatus,
+        KnownSubmissionStatus,
         Map<DayTicks, NominationSubmission[]>
     >();
     const dayToNominations = new Map<DayTicks, NominationSubmission[]>();
     const statusToMonthToNominations = new Map<
-        SubmissionStatus,
+        KnownSubmissionStatus,
         Map<MonthTicks, NominationSubmission[]>
     >();
     const monthToStatusToNominations = new Map<
         MonthTicks,
-        Map<SubmissionStatus, NominationSubmission[]>
+        Map<KnownSubmissionStatus, NominationSubmission[]>
     >();
     for (const n of nominationWithTicks) {
         const month = getStartOfLocalMonth(n.dayTicks);
