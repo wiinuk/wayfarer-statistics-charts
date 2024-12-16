@@ -1,4 +1,4 @@
-// spell-checker: ignore echarts
+// spell-checker: ignore echarts NIANTIC
 import { getOrCreate } from "./standard-extensions";
 import type {
     Day,
@@ -84,6 +84,7 @@ const statusToColor: Readonly<Partial<Record<SubmissionStatus, string>>> = {
     DUPLICATE: "#dc9c26", // オレンジ
     HELD: "#211580", // 青
     WITHDRAWN: "#c026dc", // 紫
+    NIANTIC_REVIEW: "#bbb", // 黒
 };
 const lineSeries: echarts.EChartOption.SeriesLine = {
     type: "line",

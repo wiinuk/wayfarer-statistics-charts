@@ -22,7 +22,8 @@ export type SubmissionStatus =
     | "WITHDRAWN"
     | "HELD"
     | "VOTING"
-    | "NOMINATED";
+    | "NOMINATED"
+    | "NIANTIC_REVIEW";
 
 export type Day = `${number}-${number}-${number}`;
 interface SubmissionBase {

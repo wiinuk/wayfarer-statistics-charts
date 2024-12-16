@@ -1,4 +1,4 @@
-// spell-checker: ignore echarts
+// spell-checker: ignore echarts NIANTIC
 import { addStyle } from "./document-extensions";
 import classNames, { cssText, variables } from "./styles.module.css";
 import type { SubmissionChartsDisplayNames } from "./submission-series";
@@ -230,10 +230,11 @@ function getDefaultNames(): SubmissionChartsDisplayNames {
             ACCEPTED: "承認",
             DUPLICATE: "重複",
             HELD: "保留",
-            NOMINATED: "審査中",
+            NOMINATED: "待機中",
             REJECTED: "否認",
-            VOTING: "投票中",
+            VOTING: "審査中",
             WITHDRAWN: "取下済",
+            NIANTIC_REVIEW: "🎈審査",
         },
     };
 }
