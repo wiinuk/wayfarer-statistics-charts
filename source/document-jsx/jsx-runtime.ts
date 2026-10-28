@@ -1,4 +1,18 @@
-type KnownElementTagNameMap = HTMLElementTagNameMap & SVGElementTagNameMap;
+// spell-checker: ignore jsxs
+
+type KnownElementTagNameMap = HTMLElementTagNameMap & FragmentTagNameMap;
+
+interface FragmentTagNameMap {
+    [Fragment]: DocumentFragment;
+}
+
+type EventHandlers<T> = {
+    [K in keyof T as K extends `on${string}` ? K : never]?: T[K] extends  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        | ((this: any, ev: infer E) => any)
+        | null
+        ? (ev: E) => void
+        : never;
+};
 
 type KnownAttributeNameAndType<
     TTagName extends keyof KnownElementTagNameMap,
@@ -38,7 +52,9 @@ type KnownAttributeNameAndType<
     : { name: never; type: never };
 
 type KnownExtendedAttributes<TTagName extends keyof KnownElementTagNameMap> =
-    TTagName extends "path"
+    TTagName extends typeof Fragment
+        ? { readonly children?: Node | Node[] }
+        : TTagName extends "path"
         ? {
               d: string;
               fill: string;
@@ -52,7 +68,11 @@ type ElementProperties<TName extends keyof KnownElementTagNameMap> = {
         TName,
         k
     >["name"]]?: KnownAttributeNameAndType<TName, k>["type"];
-} & KnownExtendedAttributes<TName> & { readonly classList?: readonly string[] };
+} & KnownExtendedAttributes<TName> &
+    EventHandlers<KnownElementTagNameMap[TName]> & {
+        readonly classList?: readonly string[];
+        readonly children?: ChildrenProperty;
+    };
 
 type falsy = false | null | undefined | 0 | "" | void;
 interface JsxOption {
@@ -67,36 +87,54 @@ type ChildrenProperty =
 
 export function jsxs<TName extends keyof KnownElementTagNameMap>(
     name: TName,
-    properties: Readonly<
-        ElementProperties<TName> & {
-            children?: ChildrenProperty;
-        }
-    > | null,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    properties: Readonly<ElementProperties<TName>> | null,
     _option?: JsxOption
 ): KnownElementTagNameMap[TName] {
+    if (name === Fragment) {
+        return createFragment(
+            (properties as Readonly<ElementProperties<typeof Fragment>>)
+                .children
+        ) as KnownElementTagNameMap[TName];
+    }
     const element = document.createElement(name);
     for (const [key, value] of Object.entries(properties ?? {})) {
         if (key === "children") continue;
+
+        // イベントハンドラの処理
+        if (key.startsWith("on") && typeof value === "function") {
+            const eventName = key.substring(2).toLowerCase();
+            element.addEventListener(eventName, value as EventListener);
+            continue;
+        }
+
+        // style の処理
         if (key === "style" && typeof value === "function") {
             value(element.style);
             continue;
         }
-        if (key === "classList") {
-            if (typeof value === "string") {
-                element.classList.add(name);
-            } else {
-                for (const name of value as readonly string[]) {
-                    element.classList.add(name);
+
+        // classList の処理
+        if (key === "classList" && value) {
+            const classes = Array.isArray(value) ? value : [value];
+            for (const c of classes) {
+                if (typeof c === "string" && c) {
+                    element.classList.add(c);
                 }
             }
+            continue;
         }
-        element.setAttribute(key, String(value));
+
+        // 通常の属性処理
+        if (value !== undefined && value !== null) {
+            element.setAttribute(key, String(value));
+        }
     }
+
+    // 子要素の追加処理
     const children = properties?.children;
     if (children) {
         if (Array.isArray(children)) {
-            for (const child of children.flat() as Children) {
+            for (const child of children as Children) {
                 if (!child) continue;
                 element.append(child);
             }
@@ -106,7 +144,22 @@ export function jsxs<TName extends keyof KnownElementTagNameMap>(
     }
     return element as KnownElementTagNameMap[TName];
 }
+
 export const jsx = jsxs;
+export const Fragment = Symbol("Fragment");
+function createFragment(children: Node | Node[] | undefined) {
+    const fragment = document.createDocumentFragment();
+    if (children != null) {
+        if (Array.isArray(children)) {
+            for (const child of children) {
+                fragment.appendChild(child);
+            }
+        } else {
+            fragment.appendChild(children);
+        }
+    }
+    return fragment;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace JSX {
