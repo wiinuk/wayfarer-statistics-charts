@@ -5,7 +5,7 @@
 // @downloadURL  https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @updateURL    https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @homepageURL  https://github.com/wiinuk/wayfarer-statistics-charts
-// @version      0.3.1
+// @version      0.4.0
 // @description  Visualize statistics of Niantic Wayfarer submissions.
 // @author       Wiinuk
 // @match        https://wayfarer.scopely.com/*

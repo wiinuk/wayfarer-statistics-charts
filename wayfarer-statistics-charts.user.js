@@ -5,10 +5,12 @@
 // @downloadURL  https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @updateURL    https://github.com/wiinuk/wayfarer-statistics-charts/raw/main/wayfarer-statistics-charts.user.js
 // @homepageURL  https://github.com/wiinuk/wayfarer-statistics-charts
-// @version      0.3.1
+// @version      0.4.0
 // @description  Visualize statistics of Niantic Wayfarer submissions.
 // @author       Wiinuk
 // @match        https://wayfarer.scopely.com/*
+// @grant        none
+// @run-at       document-start
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=scopely.com
 // ==/UserScript==
 
@@ -28,33 +30,47 @@ __webpack_require__.d(__webpack_exports__, {
 // UNUSED EXPORTS: handleAsyncError
 
 ;// CONCATENATED MODULE: ./source/document-jsx/jsx-runtime.ts
-function jsxs(name, properties, 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-_option) {
+// spell-checker: ignore jsxs
+function jsxs(name, properties, _option) {
+    if (name === Fragment) {
+        return createFragment(properties
+            .children);
+    }
     const element = document.createElement(name);
     for (const [key, value] of Object.entries(properties ?? {})) {
         if (key === "children")
             continue;
+        // イベントハンドラの処理
+        if (key.startsWith("on") && typeof value === "function") {
+            const eventName = key.substring(2).toLowerCase();
+            element.addEventListener(eventName, value);
+            continue;
+        }
+        // style の処理
         if (key === "style" && typeof value === "function") {
             value(element.style);
             continue;
         }
-        if (key === "classList") {
-            if (typeof value === "string") {
-                element.classList.add(name);
-            }
-            else {
-                for (const name of value) {
-                    element.classList.add(name);
+        // classList の処理
+        if (key === "classList" && value) {
+            const classes = Array.isArray(value) ? value : [value];
+            for (const c of classes) {
+                if (typeof c === "string" && c) {
+                    element.classList.add(c);
                 }
             }
+            continue;
         }
-        element.setAttribute(key, String(value));
+        // 通常の属性処理
+        if (value !== undefined && value !== null) {
+            element.setAttribute(key, String(value));
+        }
     }
+    // 子要素の追加処理
     const children = properties?.children;
     if (children) {
         if (Array.isArray(children)) {
-            for (const child of children.flat()) {
+            for (const child of children) {
                 if (!child)
                     continue;
                 element.append(child);
@@ -67,6 +83,21 @@ _option) {
     return element;
 }
 const jsx = jsxs;
+const Fragment = Symbol("Fragment");
+function createFragment(children) {
+    const fragment = document.createDocumentFragment();
+    if (children != null) {
+        if (Array.isArray(children)) {
+            for (const child of children) {
+                fragment.appendChild(child);
+            }
+        }
+        else {
+            fragment.appendChild(children);
+        }
+    }
+    return fragment;
+}
 
 ;// CONCATENATED MODULE: ./package.json
 const package_namespaceObject = {};
@@ -586,7 +617,6 @@ async function* createCitiesChartOption(response, _names) {
 
 
 
-
 function handleAsyncError(e) {
     console.error(e);
 }
@@ -639,48 +669,52 @@ function displayDialog(innerElement, choices, title = "") {
         document.body.appendChild(previewDiv);
     });
 }
-function eventToAsyncIterator(target, eventName) {
-    let listeners = [];
+function createAsyncQueue() {
+    const values = [];
+    const waiting = [];
     return {
+        push(value) {
+            const resolve = waiting.shift();
+            if (resolve)
+                resolve(value);
+            else
+                values.push(value);
+        },
         [Symbol.asyncIterator]() {
             return {
                 next() {
-                    return new Promise((resolve) => {
-                        listeners.push(resolve);
-                        target.addEventListener(eventName, onEvent, {
-                            once: true,
-                        });
-                    });
-                },
-                return() {
-                    target.removeEventListener(eventName, onEvent);
-                    for (const listener of listeners) {
-                        listener({ value: undefined, done: true });
+                    const value = values.shift();
+                    if (value !== undefined) {
+                        return Promise.resolve({ value, done: false });
                     }
-                    listeners = [];
-                    return Promise.resolve({ value: undefined, done: true });
+                    return new Promise((resolve) => {
+                        waiting.push((value) => resolve({ value, done: false }));
+                    });
                 },
             };
         },
     };
-    function onEvent(event) {
-        const listener = listeners.shift();
-        listener?.({ value: event, done: false });
-    }
 }
 function interceptApiToValues() {
-    return new Promise((resolve) => {
-        const originalOpen = XMLHttpRequest.prototype.open;
-        XMLHttpRequest.prototype.open = function (...args) {
-            const [method, url] = args;
-            if (url == "/api/v1/vault/manage") {
-                if (method == "GET") {
-                    resolve(eventToAsyncIterator(this, "load"));
-                }
-            }
-            originalOpen.apply(this, args);
-        };
-    });
+    const responses = createAsyncQueue();
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = (...args) => {
+        const requestUrl = args[0] instanceof Request ? args[0].url : String(args[0]);
+        const endpoint = "/api/v1/vault/manage";
+        const matchesEndpoint = (url) => requestUrl === url ||
+            requestUrl.startsWith(`${url}?`) ||
+            requestUrl.startsWith(`${url}#`);
+        const response = originalFetch(...args);
+        if (matchesEndpoint(endpoint) ||
+            matchesEndpoint(`${location.origin}${endpoint}`)) {
+            void response
+                .then((value) => value.clone().text())
+                .then((value) => responses.push(value))
+                .catch(handleAsyncError);
+        }
+        return response;
+    };
+    return responses;
 }
 async function createResizableChartContainer() {
     const containerElement = (jsx("div", { class: styles_module["chart-container"] }));
@@ -761,13 +795,10 @@ function loadNames() {
     };
 }
 async function asyncMain() {
+    const responses = interceptApiToValues();
+    await waitElementLoaded();
     addStyle(cssText);
-    for await (const value of await interceptApiToValues()) {
-        const response = value.currentTarget
-            .response;
-        console.debug("manage response: ", response);
-        if (typeof response !== "string")
-            return standard_extensions_error `response must be a string`;
+    for await (const response of responses) {
         const names = loadNames();
         await displayCharts([
             createCurrentChartOption(response, names),
