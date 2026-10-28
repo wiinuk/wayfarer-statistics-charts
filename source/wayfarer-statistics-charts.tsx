@@ -1,8 +1,7 @@
 // spell-checker: ignore echarts NIANTIC
-import { addStyle } from "./document-extensions";
+import { addStyle, waitElementLoaded } from "./document-extensions";
 import classNames, { cssText, variables } from "./styles.module.css";
 import type { SubmissionChartsDisplayNames } from "./submission-series";
-import { error } from "./standard-extensions";
 import type { EChartOption } from "echarts";
 import {
     createCitiesChartOption,
@@ -96,73 +95,57 @@ function displayDialog<TChoice extends string>(
     });
 }
 
-interface HasEvent<E extends Event, N extends string> {
-    addEventListener(
-        eventName: N,
-        listener: (event: E) => void,
-        options?: { once?: boolean }
-    ): void;
-    removeEventListener(eventName: N, listener: (event: E) => void): void;
-}
-function eventToAsyncIterator<E extends Event, N extends string>(
-    target: HasEvent<E, N>,
-    eventName: N
-): AsyncIterable<E> {
-    let listeners: ((result: IteratorResult<E, void>) => void)[] = [];
-
+function createAsyncQueue<T>() {
+    const values: T[] = [];
+    const waiting: ((value: T) => void)[] = [];
     return {
+        push(value: T) {
+            const resolve = waiting.shift();
+            if (resolve) resolve(value);
+            else values.push(value);
+        },
         [Symbol.asyncIterator]() {
             return {
                 next() {
-                    return new Promise((resolve) => {
-                        listeners.push(resolve);
-                        target.addEventListener(eventName, onEvent, {
-                            once: true,
-                        });
-                    });
-                },
-                return() {
-                    target.removeEventListener(eventName, onEvent);
-                    for (const listener of listeners) {
-                        listener({ value: undefined, done: true });
+                    const value = values.shift();
+                    if (value !== undefined) {
+                        return Promise.resolve({ value, done: false });
                     }
-                    listeners = [];
-                    return Promise.resolve({ value: undefined, done: true });
+                    return new Promise<IteratorResult<T>>((resolve) => {
+                        waiting.push((value) =>
+                            resolve({ value, done: false })
+                        );
+                    });
                 },
             };
         },
     };
-    function onEvent(event: E) {
-        const listener = listeners.shift();
-        listener?.({ value: event, done: false });
-    }
 }
 
 function interceptApiToValues() {
-    return new Promise<AsyncIterable<ProgressEvent<XMLHttpRequestEventTarget>>>(
-        (resolve) => {
-            const originalOpen = XMLHttpRequest.prototype.open;
-            XMLHttpRequest.prototype.open = function (
-                ...args: [method: string, url: string | URL, ...rest: unknown[]]
-            ) {
-                const [method, url] = args;
-                if (url == "/api/v1/vault/manage") {
-                    if (method == "GET") {
-                        resolve(
-                            eventToAsyncIterator<
-                                ProgressEvent<XMLHttpRequestEventTarget>,
-                                "load"
-                            >(this, "load")
-                        );
-                    }
-                }
-                originalOpen.apply(
-                    this,
-                    args as Parameters<XMLHttpRequest["open"]>
-                );
-            };
+    const responses = createAsyncQueue<string>();
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = (...args) => {
+        const requestUrl =
+            args[0] instanceof Request ? args[0].url : String(args[0]);
+        const endpoint = "/api/v1/vault/manage";
+        const matchesEndpoint = (url: string) =>
+            requestUrl === url ||
+            requestUrl.startsWith(`${url}?`) ||
+            requestUrl.startsWith(`${url}#`);
+        const response = originalFetch(...args);
+        if (
+            matchesEndpoint(endpoint) ||
+            matchesEndpoint(`${location.origin}${endpoint}`)
+        ) {
+            void response
+                .then((value) => value.clone().text())
+                .then((value) => responses.push(value))
+                .catch(handleAsyncError);
         }
-    );
+        return response;
+    };
+    return responses;
 }
 
 async function createResizableChartContainer() {
@@ -262,15 +245,11 @@ function loadNames(): SubmissionChartsDisplayNames {
     };
 }
 export async function asyncMain() {
+    const responses = interceptApiToValues();
+    await waitElementLoaded();
     addStyle(cssText);
 
-    for await (const value of await interceptApiToValues()) {
-        const response: unknown = (value.currentTarget as XMLHttpRequest)
-            .response;
-        console.debug("manage response: ", response);
-        if (typeof response !== "string")
-            return error`response must be a string`;
-
+    for await (const response of responses) {
         const names = loadNames();
         await displayCharts([
             createCurrentChartOption(response, names),

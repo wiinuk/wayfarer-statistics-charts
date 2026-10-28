@@ -38,15 +38,19 @@ interface SubmissionBase {
     day: Day;
     order: number;
     imageUrl: string;
-    nextUpgrade: boolean;
+    nextUpgrade?: boolean;
     upgraded: boolean;
     status: KnownSubmissionStatus;
     isMutable: boolean;
     isNianticControlled: boolean;
     statement: string;
-    supportingImageUrl: string;
+    supportingImageUrl?: string;
+    supportingImageUrls: string[];
     rejectReasons: RejectReason[];
     canAppeal: boolean;
+    canUpgrade?: boolean;
+    appealResolved?: boolean;
+    userAppealNotes?: string;
     isClosed: boolean;
     appealNotes: string;
     canHold: boolean;
@@ -83,7 +87,7 @@ type Submission =
 interface ManageResult {
     submissions: Submission[];
     canAppeal: boolean;
-    immediateUpgradeEnabled: boolean;
+    immediateUpgradeEnabled?: boolean;
 }
 interface ManageResponse {
     result: ManageResult;

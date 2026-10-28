@@ -9,6 +9,8 @@
 // @description  Visualize statistics of Niantic Wayfarer submissions.
 // @author       Wiinuk
 // @match        https://wayfarer.scopely.com/*
+// @grant        none
+// @run-at       document-start
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=scopely.com
 // ==/UserScript==
 
